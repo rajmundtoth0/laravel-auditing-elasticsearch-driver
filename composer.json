@@ -1,5 +1,5 @@
 {
-    "name": "rajmundtoth0/elastic-laravel-auditing-driver",
+    "name": "rajmundtoth0/laravel-auditing-elasticsearch-driver",
     "description": "An Elasticsearch driver for the owen-it/laravel-auditing package.",
     "keywords": [
         "audit",
