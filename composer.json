@@ -13,13 +13,6 @@
         "tracking"
     ],
     "type": "package",
-    "repositories": [
-        {
-            "packagist.org": false,
-            "type": "vcs",
-            "url": "https://github.com/rajmundtoth0/laravel-auditing-elasticsearch-driver"
-        }
-    ],
     "license": "MIT",
     "support": {
         "issues": "https://github.com/rajmundtoth0/laravel-auditing-elasticsearch-driver/issues",
