@@ -15,7 +15,6 @@ This is a community elasticsearch driver for [Laravel Auditing](https://laravel-
 * [Usage](#usage)
 * [Contribution](#contribution)
 
-
 ## Requirements
 
 |   | Version |
@@ -25,7 +24,6 @@ This is a community elasticsearch driver for [Laravel Auditing](https://laravel-
 | `Laravel`  | `^10`  |
 | `elasticsearch/elasticsearch`  | `^8.0`  |
 | `owen-it/laravel-auditing`  | `^13.0`  |
-
 
 ## Installation
 
@@ -71,7 +69,7 @@ The `drivers` key of the config file should look like so:
 ## Setup
 
 Run the following artisan command after installation  to create the Elasticsearch index:
-<br>
+  
 `php artisan es-audit-log:setup` 
 
 ## Usage
@@ -103,9 +101,9 @@ class SomeModel extends Model implements AuditableContract
 ```
 
 And provides the following ways to retrieve the logs related to the given model:
-<br>
+  
 `$someModel->audit_log`
-<br>
+  
 `$someModel->elasticsearchAuditLog()`
 
 Located in the `ElasticsearchAuditable` trait.
