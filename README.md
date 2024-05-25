@@ -1,6 +1,6 @@
 [![codecov](https://codecov.io/gh/rajmundtoth0/laravel-auditing-elasticsearch-driver/graph/badge.svg?token=X6X3UEP77B)](https://codecov.io/gh/rajmundtoth0/laravel-auditing-elasticsearch-driver)
 [![PHPStan](https://img.shields.io/badge/PHPStan-Level%209-brightgreen.svg?style=flat&logo=php)](https://shields.io/#/)
-[![Build](https://github.com/rajmundtoth0/laravel-auditing-elasticsearch-driver/actions/workflows/php.yml/badge.svg)]
+[![Build](https://github.com/rajmundtoth0/laravel-auditing-elasticsearch-driver/actions/workflows/php.yml/badge.svg)]()
 # Laravel Auditing Elasticsearch Driver
 
 This is a community elasticsearch driver for [Laravel Auditing](https://laravel-auditing.com/).
