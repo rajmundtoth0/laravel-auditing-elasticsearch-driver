@@ -135,5 +135,5 @@ trait ElasticSearchAuditable
 
 ## Contribution
 
-Pull requests has  to be opened against the `main` branch.
+Pull requests has  to be opened against the `master` branch.
 
