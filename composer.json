@@ -61,6 +61,7 @@
         "analyse": "vendor/bin/phpstan analyse",
         "test": "vendor/bin/phpunit",
         "test-coverage": "vendor/bin/phpunit --coverage-html=./Tests/CoverageReport/",
+        "test-coverage-ci": "vendor/bin/phpunit --coverage-clover=coverage.xml",
         "cs": "vendor/bin/php-cs-fixer fix src"
     },
     "autoload-dev": {
