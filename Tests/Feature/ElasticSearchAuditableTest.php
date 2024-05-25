@@ -30,7 +30,7 @@ class ElasticSearchAuditableTest extends TestCase
                 ],
             ],
         ];
-        $service = $this->getService(
+        $this->getService(
             statuses: [200],
             bodies: [$body],
             shouldBind: true,
