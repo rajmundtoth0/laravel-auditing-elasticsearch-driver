@@ -1,6 +1,6 @@
 [![codecov](https://codecov.io/gh/rajmundtoth0/laravel-auditing-elasticsearch-driver/graph/badge.svg?token=X6X3UEP77B)](https://codecov.io/gh/rajmundtoth0/laravel-auditing-elasticsearch-driver)
 [![PHPStan](https://img.shields.io/badge/PHPStan-Level%209-brightgreen.svg?style=flat&logo=php)](https://shields.io/#/)
-[![Build](https://github.com/rajmundtoth0/laravel-auditing-elasticsearch-driver/actions/workflows/php.yml/badge.svg)]()
+[![Build](https://github.com/rajmundtoth0/laravel-auditing-elasticsearch-driver/actions/workflows/php.yml/badge.svg)](https://github.com/rajmundtoth0/laravel-auditing-elasticsearch-driver/actions/workflows/php.yml)
 
 # Laravel Auditing Elasticsearch Driver
 
@@ -12,7 +12,6 @@ This is a community elasticsearch driver for [Laravel Auditing](https://laravel-
 * [Installation](#installation)
 * [Config](#config)
 * [Setup](#setup)
-* [Console commands](#console-commands)
 * [Usage](#usage)
 * [Contribution](#contribution)
 
@@ -35,6 +34,7 @@ composer require rajmundtoth0/laravel-auditing-elasticsearch-driver-driver
 ```
 
 ## Config
+
 The `driver` key of the config file should look like so:
 
 ```
@@ -139,8 +139,6 @@ trait ElasticSearchAuditable
 }
 ```
 
-
 ## Contribution
 
 Pull requests has  to be opened against the `master` branch.
-

@@ -2,9 +2,8 @@
 
 namespace Tests\Feature;
 
-use rajmundtoth0\AuditDriver\Tests\Model\User;
-use rajmundtoth0\AuditDriver\Tests\TestCase;
 use Illuminate\Support\Collection;
+use rajmundtoth0\AuditDriver\Tests\TestCase;
 
 /**
  * @internal
@@ -28,8 +27,8 @@ class ElasticSearchAuditableTest extends TestCase
                             'name' => 'Test Doe',
                         ],
                     ],
-                ]
-            ]
+                ],
+            ],
         ];
         $service = $this->getService(
             statuses: [200],
@@ -37,8 +36,7 @@ class ElasticSearchAuditableTest extends TestCase
             shouldBind: true,
         );
 
-        /** @var User $user */
-        $user = User::factory()->make();
+        $user = $this->getUser();
         $user->update([
             'name' => 'Test Doe',
         ]);

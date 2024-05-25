@@ -2,9 +2,6 @@
 
 namespace rajmundtoth0\AuditDriver\Tests;
 
-use rajmundtoth0\AuditDriver\ElasticsearchAuditingServiceProvider;
-use rajmundtoth0\AuditDriver\Services\ElasticsearchAuditService;
-use rajmundtoth0\AuditDriver\Tests\Model\User;
 use Elastic\Elasticsearch\Client;
 use Elastic\Elasticsearch\ClientBuilder;
 use Elastic\Elasticsearch\Response\Elasticsearch;
@@ -14,6 +11,9 @@ use Illuminate\Support\Facades\Config;
 use Nyholm\Psr7\Response;
 use Orchestra\Testbench\TestCase as Orchestra;
 use OwenIt\Auditing\Contracts\Audit;
+use rajmundtoth0\AuditDriver\ElasticsearchAuditingServiceProvider;
+use rajmundtoth0\AuditDriver\Services\ElasticsearchAuditService;
+use rajmundtoth0\AuditDriver\Tests\Model\User;
 
 /**
  * @internal
