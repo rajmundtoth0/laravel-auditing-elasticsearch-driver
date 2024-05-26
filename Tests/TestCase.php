@@ -41,7 +41,7 @@ class TestCase extends Orchestra
     }
 
     /** @return array<int, string> */
-    protected function getPackageProviders(): array
+    protected function getPackageProviders($app): array
     {
         return [
             ElasticsearchAuditingServiceProvider::class,
