@@ -25,8 +25,7 @@ return [
     'user' => [
         'primary_key' => 'id',
         'foreign_key' => 'user_id',
-        /** @phpstan-ignore-next-line */
-        'model' => App\Models\User::class,
+        'model'       => App\Models\User::class,
     ],
 
     /*

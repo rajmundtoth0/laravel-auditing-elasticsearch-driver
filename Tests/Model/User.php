@@ -2,13 +2,14 @@
 
 namespace rajmundtoth0\AuditDriver\Tests\Model;
 
-use rajmundtoth0\AuditDriver\Traits\ElasticSearchAuditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use OwenIt\Auditing\Auditable;
 use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
+use rajmundtoth0\AuditDriver\Traits\ElasticSearchAuditable;
 
 /**
+ * @property int $id
  * @property string $name
  * @property string $email
  * @property Carbon $email_verified_at

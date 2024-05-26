@@ -2,8 +2,8 @@
 
 namespace rajmundtoth0\AuditDriver\Tests\Feature;
 
-use rajmundtoth0\AuditDriver\Tests\TestCase;
 use Illuminate\Support\Facades\Config;
+use rajmundtoth0\AuditDriver\Tests\TestCase;
 
 /**
  * @internal
@@ -99,7 +99,6 @@ class ElasticsearchAuditServiceTest extends TestCase
         $service->indexDocument($user->toArray());
         $service->indexDocument(['name' => 'Not John Doe']);
 
-        /** @phpstan-ignore-next-line */
         $result = $service->deleteAuditDocument($user->id, true);
 
         $this->assertTrue($result);

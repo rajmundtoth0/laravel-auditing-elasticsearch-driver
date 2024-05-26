@@ -2,14 +2,14 @@
 
 namespace rajmundtoth0\AuditDriver\Services;
 
-use rajmundtoth0\AuditDriver\Client\ElasticsearchClient;
-
-use rajmundtoth0\AuditDriver\Models\DocumentModel;
 use Elastic\Elasticsearch\Client;
+
 use Elastic\Elasticsearch\Response\Elasticsearch;
 use OwenIt\Auditing\Contracts\Audit;
 use OwenIt\Auditing\Contracts\Auditable;
 use OwenIt\Auditing\Contracts\AuditDriver;
+use rajmundtoth0\AuditDriver\Client\ElasticsearchClient;
+use rajmundtoth0\AuditDriver\Models\DocumentModel;
 use Ramsey\Uuid\Uuid;
 
 class ElasticsearchAuditService implements AuditDriver
@@ -50,7 +50,8 @@ class ElasticsearchAuditService implements AuditDriver
             return false;
         }
 
-        /** @phpstan-ignore-next-line */
+        assert(property_exists($model, 'id'));
+
         return $this->deleteAuditDocument($model->id, $shouldReturnResult);
     }
 
@@ -76,6 +77,8 @@ class ElasticsearchAuditService implements AuditDriver
         string $sort = 'desc',
     ): Elasticsearch {
         $from ??= $model->getAuditThreshold() - 1;
+        assert(property_exists($model, 'id'));
+        assert(method_exists($model, 'getMorphClass'));
 
         $params = [
             'index' => $this->index,
@@ -88,13 +91,11 @@ class ElasticsearchAuditService implements AuditDriver
                         'must' => [
                             [
                                 'term' => [
-                                    /** @phpstan-ignore-next-line */
                                     'auditable_id' => $model->id,
                                 ]
                             ],
                             [
                                 'term' => [
-                                    /** @phpstan-ignore-next-line */
                                     'auditable_type' => $model->getMorphClass(),
                                 ]
                             ]
@@ -154,5 +155,10 @@ class ElasticsearchAuditService implements AuditDriver
         $this->client->setClient($client);
 
         return $this;
+    }
+
+    public function getIndexName(): string
+    {
+        return $this->index;
     }
 }

@@ -2,9 +2,8 @@
 
 namespace rajmundtoth0\AuditDriver\Tests\Feature;
 
-use rajmundtoth0\AuditDriver\Client\ElasticsearchClient;
-use rajmundtoth0\AuditDriver\Tests\TestCase;
 use Illuminate\Testing\PendingCommand;
+use rajmundtoth0\AuditDriver\Tests\TestCase;
 
 /**
  * @internal
@@ -18,18 +17,17 @@ class ElasticsearchSetupCommandTest extends TestCase
 
     public function testSetupCommand(): void
     {
-        $client = $this->mock(ElasticsearchClient::class);
-        /** @var \Mockery\MockInterface $client*/
-        $client->shouldReceive('isIndexExists')
-            ->andReturn(true);
-        /** @phpstan-ignore-next-line */
-        $client
-            ->shouldReceive('toggleAsync')
-            ->shouldReceive('updateAliases')
-            ->shouldReceive('createIndex')
-            ->andReturn(true);
+        $service = $this->getService(
+            statuses: [200, 200, 200],
+            bodies: [],
+            shouldBind: true,
+            shouldThrowException: false,
+        );
+
         $result = $this->artisan('es-audit-log:setup');
         assert($result instanceof PendingCommand);
+
         $result->assertExitCode(0);
+        $this->assertSame('mocked', $service->getIndexName());
     }
 }
