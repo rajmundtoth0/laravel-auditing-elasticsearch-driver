@@ -22,7 +22,6 @@ This is a community elasticsearch driver for [Laravel Auditing](https://laravel-
 | ------------- | ------------- |
 | `php`  |  `>= 8.2`  |
 | `Laravel`  | `^10`  |
-| `Laravel`  | `^10`  |
 | `elasticsearch/elasticsearch`  | `^8.0`  |
 | `owen-it/laravel-auditing`  | `^13.0`  |
 
