@@ -2,8 +2,8 @@
 
 namespace rajmundtoth0\AuditDriver\Console;
 
-use rajmundtoth0\AuditDriver\Services\ElasticsearchAuditService;
 use Illuminate\Console\Command;
+use rajmundtoth0\AuditDriver\Services\ElasticsearchAuditService;
 
 class ElasticsearchSetupCommand extends Command
 {

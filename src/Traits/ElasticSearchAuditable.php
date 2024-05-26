@@ -2,8 +2,8 @@
 
 namespace rajmundtoth0\AuditDriver\Traits;
 
-use rajmundtoth0\AuditDriver\Services\ElasticsearchAuditService;
 use Illuminate\Support\Collection;
+use rajmundtoth0\AuditDriver\Services\ElasticsearchAuditService;
 
 trait ElasticSearchAuditable
 {

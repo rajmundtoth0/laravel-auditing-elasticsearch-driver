@@ -2,12 +2,12 @@
 
 namespace rajmundtoth0\AuditDriver\Tests\Feature;
 
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Storage;
 use rajmundtoth0\AuditDriver\Client\ElasticsearchClient;
 use rajmundtoth0\AuditDriver\Exceptions\AuditDriverConfigNotSetException;
 use rajmundtoth0\AuditDriver\Exceptions\AuditDriverMissingCaCertException;
 use rajmundtoth0\AuditDriver\Tests\TestCase;
-use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * @internal

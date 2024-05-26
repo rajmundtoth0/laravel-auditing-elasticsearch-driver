@@ -65,7 +65,7 @@ class TestCase extends Orchestra
 
         if ($shouldBind) {
             assert($this->app instanceof Application);
-            $this->app->singleton(ElasticsearchAuditService::class, fn(): ElasticsearchAuditService => $service);
+            $this->app->singleton(ElasticsearchAuditService::class, fn (): ElasticsearchAuditService => $service);
         }
 
         return $service;

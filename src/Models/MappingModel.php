@@ -4,7 +4,7 @@ namespace rajmundtoth0\AuditDriver\Models;
 
 class MappingModel
 {
-    private CONST DATE_FORMAT_CONFIG_KEY = 'audit.drivers.elastic.dateFormat';
+    private const DATE_FORMAT_CONFIG_KEY = 'audit.drivers.elastic.dateFormat';
 
     private const DEFAULT_DATE_FORMAT = 'yyyy-MM-dd HH:mm:ss';
 

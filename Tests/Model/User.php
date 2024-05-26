@@ -19,7 +19,8 @@ use rajmundtoth0\AuditDriver\Traits\ElasticSearchAuditable;
 class User extends Model implements AuditableContract
 {
     use \Illuminate\Auth\Authenticatable;
-    use ElasticSearchAuditable, Auditable;
+    use ElasticSearchAuditable;
+    use Auditable;
     use HasFactory;
 
     protected $fillable = [
