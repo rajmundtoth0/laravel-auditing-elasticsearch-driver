@@ -63,7 +63,8 @@
         "test": "vendor/bin/phpunit",
         "test-coverage": "vendor/bin/phpunit --coverage-html=./Tests/CoverageReport/",
         "test-coverage-ci": "vendor/bin/phpunit --coverage-clover=coverage.xml",
-        "cs": "vendor/bin/php-cs-fixer fix ./"
+        "cs": "vendor/bin/php-cs-fixer fix ./",
+        "cs-ci": "vendor/bin/php-cs-fixer fix --dry-run --diff --ansi  ./"
     },
     "autoload-dev": {
         "files": ["config/audit.php"],
