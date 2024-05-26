@@ -1,3 +1,4 @@
 vendor
 *.crt
 .phpunit.result.cache
+composer.lock
