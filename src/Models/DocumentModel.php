@@ -22,6 +22,6 @@ class DocumentModel
     /** @return array<string, mixed> */
     public function toArray(): array
     {
-        return call_user_func('get_object_vars', $this);
+        return get_object_vars($this);
     }
 }
