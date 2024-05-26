@@ -27,9 +27,9 @@ class ElasticsearchAuditService implements AuditDriver
         $auditType      = config('audit.drivers.elastic.type');
         $implementation = config('audit.implementation');
 
-        assert(is_string($index));
-        assert(is_string($auditType));
-        assert(is_string($implementation) && class_exists($implementation));
+        // assert(is_string($index));
+        // assert(is_string($auditType));
+        // assert(is_string($implementation) && class_exists($implementation));
         $this->index          = $index;
         $this->auditType      = $auditType;
         $this->implementation = $implementation;

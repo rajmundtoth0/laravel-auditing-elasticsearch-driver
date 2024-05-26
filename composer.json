@@ -58,7 +58,7 @@
         }
     },
     "scripts": {
-        "analyse": "vendor/bin/phpstan analyse",
+        "analyse": "vendor/bin/phpstan analyse --no-progress",
         "test": "vendor/bin/phpunit",
         "test-coverage": "vendor/bin/phpunit --coverage-html=./Tests/CoverageReport/",
         "test-coverage-ci": "vendor/bin/phpunit --coverage-clover=coverage.xml",
