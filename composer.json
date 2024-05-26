@@ -50,7 +50,8 @@
         "phpunit/phpunit": "^10.5",
         "dg/bypass-finals": "^1.6",
         "phpstan/phpstan": "^1.10",
-        "phpstan/phpstan-mockery": "^1.1"
+        "phpstan/phpstan-mockery": "^1.1",
+        "friendsofphp/php-cs-fixer": "^3.57"
     },
     "config": {
         "allow-plugins": {
@@ -62,7 +63,7 @@
         "test": "vendor/bin/phpunit",
         "test-coverage": "vendor/bin/phpunit --coverage-html=./Tests/CoverageReport/",
         "test-coverage-ci": "vendor/bin/phpunit --coverage-clover=coverage.xml",
-        "cs": "vendor/bin/php-cs-fixer fix src"
+        "cs": "vendor/bin/php-cs-fixer fix ./"
     },
     "autoload-dev": {
         "files": ["config/audit.php"],
