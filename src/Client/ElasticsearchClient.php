@@ -2,10 +2,6 @@
 
 namespace rajmundtoth0\AuditDriver\Client;
 
-use rajmundtoth0\AuditDriver\Exceptions\AuditDriverConfigNotSetException;
-use rajmundtoth0\AuditDriver\Exceptions\AuditDriverMissingCaCertException;
-use rajmundtoth0\AuditDriver\Models\DocumentModel;
-use rajmundtoth0\AuditDriver\Models\MappingModel;
 use Elastic\Elasticsearch\Client;
 use Elastic\Elasticsearch\ClientBuilder;
 use Elastic\Elasticsearch\Response\Elasticsearch;
@@ -13,6 +9,10 @@ use GuzzleHttp\Client as GuzzleHttpClient;
 use Http\Adapter\Guzzle7\Client as Guzzle7Client;
 use Http\Promise\Promise;
 use Illuminate\Support\Facades\Storage;
+use rajmundtoth0\AuditDriver\Exceptions\AuditDriverConfigNotSetException;
+use rajmundtoth0\AuditDriver\Exceptions\AuditDriverMissingCaCertException;
+use rajmundtoth0\AuditDriver\Models\DocumentModel;
+use rajmundtoth0\AuditDriver\Models\MappingModel;
 
 class ElasticsearchClient
 {
@@ -63,7 +63,7 @@ class ElasticsearchClient
         $this->caBundlePath = Storage::path($caCert);
         if (!$this->caBundlePath) {
             throw new AuditDriverMissingCaCertException(
-                message: 'Path: '.$caCert,
+                message: 'Cacert file path is invalid!',
             );
         }
 
