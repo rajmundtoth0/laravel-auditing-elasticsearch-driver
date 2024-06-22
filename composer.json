@@ -51,7 +51,8 @@
         "dg/bypass-finals": "^1.6",
         "phpstan/phpstan": "^1.10",
         "phpstan/phpstan-mockery": "^1.1",
-        "friendsofphp/php-cs-fixer": "^3.57"
+        "friendsofphp/php-cs-fixer": "^3.57",
+        "larastan/larastan": "^2.0"
     },
     "config": {
         "allow-plugins": {

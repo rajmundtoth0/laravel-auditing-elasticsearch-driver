@@ -36,6 +36,7 @@ class TestCase extends Orchestra
         Config::set('audit.drivers.elastic.type', 'mocked');
         Config::set('audit.implementation', Audit::class);
         Config::set('audit.drivers.elastic.useCaCert', false);
+        Config::set('audit.drivers.elastic.useAsyncClient', false);
         Config::set('audit.drivers.elastic.certPath', 'http_ca.crt');
         $this->loadMigrationsFrom(__DIR__.'/Migration');
     }
@@ -60,8 +61,8 @@ class TestCase extends Orchestra
             shouldThrowException: $shouldThrowException,
         );
         /** @var ElasticsearchAuditService $service*/
-        $service = resolve(ElasticsearchAuditService::class);
-        $service->setClient($mockedElasticClient);
+        $service = resolve(ElasticsearchAuditService::class)
+            ->setClient($mockedElasticClient);
 
         if ($shouldBind) {
             assert($this->app instanceof Application);

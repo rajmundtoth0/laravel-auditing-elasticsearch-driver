@@ -16,36 +16,40 @@ use rajmundtoth0\AuditDriver\Models\MappingModel;
 
 class ElasticsearchClient
 {
-    private Client $client;
+    private bool|string $caBundlePath = false;
 
     private ClientBuilder $clientBuilder;
 
-    private bool|string $caBundlePath = false;
+    private Client $client;
 
     public function __construct()
     {
-        $this->setClient();
     }
 
-    public function toggleAsync(bool $isAsync = false): void
+    public function setAsync(bool $isAsync = false): void
     {
-        $this->client->setAsync($isAsync);
+        if (!$isAsync) {
+            return;
+        }
+        $this->setAsyncHttpClient();
     }
 
-    public function setClient(?Client $client = null): void
+    public function setClient(?Client $client = null, bool $isAsync = false): self
     {
         $this->setHosts();
         $this->setBasicAuth();
         $this->setCaBundle();
-        $this->setAsync();
-        if ($client) {
-            $this->client = $client;
-
-            return;
-        }
-        $this->client = $this
+        $this->setAsync($isAsync);
+        if (!$client) {
+            $client = $this
             ->clientBuilder
             ->build();
+        }
+
+        $this->client = $client;
+        $this->client->setAsync($isAsync);
+
+        return $this;
     }
 
     public function setCaBundle(): void
@@ -72,12 +76,8 @@ class ElasticsearchClient
         );
     }
 
-    public function setAsync(): void
+    public function setAsyncHttpClient(): void
     {
-        if (!config('audit.drivers.elastic.asyncClient', false)) {
-            return;
-        }
-
         $guzzleClient    = new GuzzleHttpClient(['verify' => $this->caBundlePath]);
         $httpAsyncClient = new Guzzle7Client($guzzleClient);
         $this->clientBuilder->setAsyncHttpClient($httpAsyncClient);
