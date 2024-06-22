@@ -4,7 +4,6 @@ namespace rajmundtoth0\AuditDriver\Tests\Model;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use OwenIt\Auditing\Auditable;
 use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 use rajmundtoth0\AuditDriver\Traits\ElasticSearchAuditable;
 
@@ -20,7 +19,7 @@ class User extends Model implements AuditableContract
 {
     use \Illuminate\Auth\Authenticatable;
     use ElasticSearchAuditable;
-    use Auditable;
+    use \OwenIt\Auditing\Auditable;
     use HasFactory;
 
     protected $fillable = [

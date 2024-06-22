@@ -3,6 +3,10 @@
 namespace rajmundtoth0\AuditDriver\Tests\Feature;
 
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Hash;
+use OwenIt\Auditing\Contracts\Audit;
+use OwenIt\Auditing\Resolvers\UserResolver;
+use rajmundtoth0\AuditDriver\Tests\Model\User;
 use rajmundtoth0\AuditDriver\Tests\TestCase;
 
 /**
@@ -116,6 +120,30 @@ class ElasticsearchAuditServiceTest extends TestCase
         $result = $service->prune($this->getUser(), true);
 
         $this->assertSame($expectedResult, $result);
+    }
+
+    public function testAudit() : void
+    {
+        Config::set('audit.user.resolver', UserResolver::class);
+        $service = $this->getService(
+            statuses: [200, 200],
+            bodies: [],
+            shouldBind: true,
+        );
+        $user = User::create([
+            'name'     => 'test',
+            'email'    => 'test@test.test',
+            'password' => Hash::make('a_very_strong_password'),
+        ]);
+        $user->isCustomEvent = true;
+        $user->setAuditEvent('saving');
+        $result = $service->audit($user);
+
+        $this->assertInstanceOf(Audit::class, $result);
+
+        $searchResult = $service->searchAuditDocument($user);
+        $this->assertTrue($searchResult->asBool());
+        $this->assertSame($searchResult->asArray(), $searchResult->asArray());
     }
 
     /** @return array<int, array<string, int>> */

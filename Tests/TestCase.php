@@ -10,7 +10,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Config;
 use Nyholm\Psr7\Response;
 use Orchestra\Testbench\TestCase as Orchestra;
-use OwenIt\Auditing\Contracts\Audit;
+use OwenIt\Auditing\Models\Audit;
 use rajmundtoth0\AuditDriver\ElasticsearchAuditingServiceProvider;
 use rajmundtoth0\AuditDriver\Services\ElasticsearchAuditService;
 use rajmundtoth0\AuditDriver\Tests\Model\User;
