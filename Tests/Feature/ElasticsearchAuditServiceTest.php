@@ -146,6 +146,17 @@ class ElasticsearchAuditServiceTest extends TestCase
         $this->assertSame($searchResult->asArray(), $searchResult->asArray());
     }
 
+    public function testIsAsync(): void
+    {
+        $service = $this->getService(
+            statuses: [200],
+            bodies: [],
+            shouldBind: true,
+        );
+
+        $this->assertFalse($service->isAsync());
+    }
+
     /** @return array<int, array<string, int>> */
     public static function provideCreateIndexCases(): iterable
     {
