@@ -196,6 +196,11 @@ class ElasticsearchClient
             ->getResult($result, true);
     }
 
+    public function isAsync(): bool
+    {
+        return $this->client->getAsync();
+    }
+
     public function isIndexExists(string $index): bool
     {
         $result = $this->client->indices()->exists(

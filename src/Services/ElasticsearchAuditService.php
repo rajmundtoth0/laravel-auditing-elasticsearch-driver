@@ -134,22 +134,13 @@ class ElasticsearchAuditService implements AuditDriver
             ->deleteIndex($this->index);
     }
 
-    public function isIndexExists(): bool
-    {
-        return $this
-            ->client
-            ->isIndexExists($this->index);
-    }
-
     public function createIndex(): string
     {
         if ($this->isAsyncClient) {
-            $client = resolve(ElasticsearchClient::class)
+            $this->client = resolve(ElasticsearchClient::class)
             ->setClient(
                 isAsync: false,
             );
-        } else {
-            $client = $this->client;
         }
 
         if ($client->isIndexExists($this->index)) {
@@ -162,11 +153,19 @@ class ElasticsearchAuditService implements AuditDriver
         return $this->index;
     }
 
-    public function setClient(?Client $client = null): ElasticsearchAuditService
+    public function setClient(?Client $client = null, bool $isAsync = false): ElasticsearchAuditService
     {
-        $this->client->setClient($client);
+        $this->client->setClient(
+            client: $client,
+            isAsync: $isAsync,
+        );
 
         return $this;
+    }
+
+    public function isAsync(): bool
+    {
+        return $this->client->isAsync();
     }
 
     public function getIndexName(): string
