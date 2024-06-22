@@ -135,13 +135,14 @@ return [
             'hosts' => [
                 env('AUDIT_HOST', 'http://172.22.0.5:9200')
             ],
-            'userName'     => env('ELASTIC_AUDIT_USER', 'elastic'),
-            'password'     => env('ELASTIC_AUDIT_PASSWORD', 'a_very_strong_password'),
-            'useBasicAuth' => env('AUDIT_BASIC_AUTH', true),
-            'useCaCert'    => env('AUDIT_USE_CERT', true),
-            'certPath'     => env('AUDIT_CERT_PATH', false),
-            'index'        => env('AUDIT_INDEX', 'laravel_auditing'),
-            'type'         => env('AUDIT_TYPE', 'audits'),
+            'userName'       => env('ELASTIC_AUDIT_USER', 'elastic'),
+            'password'       => env('ELASTIC_AUDIT_PASSWORD', 'a_very_strong_password'),
+            'useBasicAuth'   => env('AUDIT_BASIC_AUTH', true),
+            'useCaCert'      => env('AUDIT_USE_CERT', true),
+            'certPath'       => env('AUDIT_CERT_PATH', false),
+            'index'          => env('AUDIT_INDEX', 'laravel_auditing'),
+            'type'           => env('AUDIT_TYPE', 'audits'),
+            'useAsyncClient' => env('AUDIT_ASYNC_CLIENT', false),
         ]
     ],
 

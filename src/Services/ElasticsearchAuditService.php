@@ -14,25 +14,31 @@ use Ramsey\Uuid\Uuid;
 
 class ElasticsearchAuditService implements AuditDriver
 {
-    public readonly string $index;
-
-    private readonly string $auditType;
-
-    private readonly string $implementation;
-
     public function __construct(
         private readonly ElasticsearchClient $client,
+        private string $implementation = '',
+        private bool $isAsyncClient = false,
+        private string $auditType = '',
+        public string $index = 'laravel_auditing',
+
     ) {
         $index          = config('audit.drivers.elastic.index');
         $auditType      = config('audit.drivers.elastic.type');
         $implementation = config('audit.implementation');
+        $isAsync        = config('audit.drivers.elastic.useAsyncClient', false);
 
         assert(is_string($index));
         assert(is_string($auditType));
         assert(is_string($implementation) && class_exists($implementation));
+        assert(is_bool($isAsync));
+
         $this->index          = $index;
         $this->auditType      = $auditType;
         $this->implementation = $implementation;
+        $this->isAsyncClient  = $isAsync;
+        $this->client->setClient(
+            isAsync: $this->isAsyncClient
+        );
     }
 
     public function audit(Auditable $model): Audit
@@ -77,9 +83,9 @@ class ElasticsearchAuditService implements AuditDriver
         string $sort = 'desc',
     ): Elasticsearch {
         $from ??= $model->getAuditThreshold() - 1;
+
         assert(property_exists($model, 'id'));
         assert(method_exists($model, 'getMorphClass'));
-
         $params = [
             'index' => $this->index,
             'type'  => $this->auditType,
@@ -128,33 +134,34 @@ class ElasticsearchAuditService implements AuditDriver
             ->deleteIndex($this->index);
     }
 
-    public function isIndexExists(): bool
-    {
-        return $this
-            ->client
-            ->isIndexExists($this->index);
-    }
-
     public function createIndex(): string
     {
-        $this->client->toggleAsync();
-        if ($this->isIndexExists()) {
+        $this->client->setAsync();
+        if ($this->client->isIndexExists($this->index)) {
             return $this->index;
         }
         $this->client->createIndex($this->index, $this->auditType);
 
         $this->client->updateAliases($this->index);
 
-        $this->client->toggleAsync(true);
+        $this->client->setAsync(true);
 
         return $this->index;
     }
 
-    public function setClient(?Client $client = null): ElasticsearchAuditService
+    public function setClient(?Client $client = null, bool $isAsync = false): ElasticsearchAuditService
     {
-        $this->client->setClient($client);
+        $this->client->setClient(
+            client: $client,
+            isAsync: $isAsync,
+        );
 
         return $this;
+    }
+
+    public function isAsync(): bool
+    {
+        return $this->client->isAsync();
     }
 
     public function getIndexName(): string

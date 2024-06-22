@@ -29,7 +29,8 @@ class ElasticsearchClientExceptionsTest extends TestCase
 
         Config::set('audit.drivers.elastic.useCaCert', true);
         Config::set($key, null);
-        resolve(ElasticsearchClient::class);
+        resolve(ElasticsearchClient::class)
+            ->setClient();
     }
 
     public function testCaCertMissingException(): void
@@ -40,7 +41,8 @@ class ElasticsearchClientExceptionsTest extends TestCase
         $this->expectException(AuditDriverMissingCaCertException::class);
         Config::set('audit.drivers.elastic.useCaCert', true);
         Config::set('audit.drivers.elastic.certPath', '/dont-find-me');
-        resolve(ElasticsearchClient::class);
+        resolve(ElasticsearchClient::class)
+            ->setClient();
     }
 
     /**
