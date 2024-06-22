@@ -39,6 +39,7 @@ class ElasticsearchClient
         $this->setHosts();
         $this->setBasicAuth();
         $this->setCaBundle();
+
         $this->setAsync($isAsync);
         if (!$client) {
             $client = $this

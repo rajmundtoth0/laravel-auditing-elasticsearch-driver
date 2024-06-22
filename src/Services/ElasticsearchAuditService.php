@@ -136,8 +136,9 @@ class ElasticsearchAuditService implements AuditDriver
 
     public function createIndex(): string
     {
+        $client = $this->client;
         if ($this->isAsyncClient) {
-            $this->client = resolve(ElasticsearchClient::class)
+            $client = resolve(ElasticsearchClient::class)
             ->setClient(
                 isAsync: false,
             );
