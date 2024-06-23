@@ -28,7 +28,7 @@ This is a community elasticsearch driver for [Laravel Auditing](https://laravel-
 ## Installation
 
 ```
-composer require rajmundtoth0/laravel-auditing-elasticsearch-driver-driver
+composer require rajmundtoth0/laravel-auditing-elasticsearch-driver
 ```
 
 ## Config
