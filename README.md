@@ -37,7 +37,7 @@ The `driver` key of the config file should look like so:
 
 ```
     ...
-    'driver' => rajmundtoth0\AuditDriver\Drivers\ElasticSearch::class,
+    'driver' => rajmundtoth0\AuditDriver\Services\ElasticsearchAuditService::class,
     ...
 ```
 
