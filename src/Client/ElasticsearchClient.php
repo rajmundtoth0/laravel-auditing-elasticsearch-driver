@@ -5,8 +5,7 @@ namespace rajmundtoth0\AuditDriver\Client;
 use Elastic\Elasticsearch\Client;
 use Elastic\Elasticsearch\ClientBuilder;
 use Elastic\Elasticsearch\Response\Elasticsearch;
-use GuzzleHttp\Client as GuzzleHttpClient;
-use Http\Adapter\Guzzle7\Client as Guzzle7Client;
+use Exception;
 use Http\Promise\Promise;
 use Illuminate\Support\Facades\Storage;
 use rajmundtoth0\AuditDriver\Exceptions\AuditDriverConfigNotSetException;
@@ -26,29 +25,19 @@ class ElasticsearchClient
     {
     }
 
-    public function setAsync(bool $isAsync = false): void
-    {
-        if (!$isAsync) {
-            return;
-        }
-        $this->setAsyncHttpClient();
-    }
-
-    public function setClient(?Client $client = null, bool $isAsync = false): self
+    public function setClient(?Client $client = null): self
     {
         $this->setHosts();
         $this->setBasicAuth();
         $this->setCaBundle();
 
-        $this->setAsync($isAsync);
         if (!$client) {
             $client = $this
-            ->clientBuilder
-            ->build();
+                ->clientBuilder
+                ->build();
         }
 
         $this->client = $client;
-        $this->client->setAsync($isAsync);
 
         return $this;
     }
@@ -75,13 +64,6 @@ class ElasticsearchClient
         $this->clientBuilder->setCABundle(
             cert: $this->caBundlePath,
         );
-    }
-
-    public function setAsyncHttpClient(): void
-    {
-        $guzzleClient    = new GuzzleHttpClient(['verify' => $this->caBundlePath]);
-        $httpAsyncClient = new Guzzle7Client($guzzleClient);
-        $this->clientBuilder->setAsyncHttpClient($httpAsyncClient);
     }
 
     public function setBasicAuth(): void
@@ -168,9 +150,7 @@ class ElasticsearchClient
     {
         $result = $this->client->search($params);
 
-        if ($result instanceof Promise) {
-            $result = $result->wait(true);
-        }
+        throw_if($result instanceof Promise, new Exception('Async handler is not implemented!'));
 
         /** @var Elasticsearch $result */
         return $result;
@@ -227,13 +207,16 @@ class ElasticsearchClient
         if (!$shouldReturnResult) {
             return false;
         }
-        if ($rawResult instanceof Promise) {
-            $rawResult = $rawResult
-                ->wait(true);
-        }
+
+        throw_if($rawResult instanceof Promise, new Exception('Async handler is not implemented!'));
 
         /** @var Elasticsearch $rawResult */
         return $rawResult
             ->asBool();
+    }
+
+    public function getCaBundlePath(): bool|string
+    {
+        return $this->caBundlePath;
     }
 }

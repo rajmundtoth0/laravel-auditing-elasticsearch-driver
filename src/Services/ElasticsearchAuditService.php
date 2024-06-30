@@ -17,7 +17,6 @@ class ElasticsearchAuditService implements AuditDriver
     public function __construct(
         private readonly ElasticsearchClient $client,
         private string $implementation = '',
-        private bool $isAsyncClient = false,
         private string $auditType = '',
         public string $index = 'laravel_auditing',
 
@@ -25,20 +24,14 @@ class ElasticsearchAuditService implements AuditDriver
         $index          = config('audit.drivers.elastic.index');
         $auditType      = config('audit.drivers.elastic.type');
         $implementation = config('audit.implementation');
-        $isAsync        = config('audit.drivers.elastic.useAsyncClient', false);
 
         assert(is_string($index));
         assert(is_string($auditType));
         assert(is_string($implementation) && class_exists($implementation));
-        assert(is_bool($isAsync));
 
         $this->index          = $index;
         $this->auditType      = $auditType;
         $this->implementation = $implementation;
-        $this->isAsyncClient  = $isAsync;
-        $this->client->setClient(
-            isAsync: $this->isAsyncClient
-        );
     }
 
     public function audit(Auditable $model): Audit
@@ -136,15 +129,12 @@ class ElasticsearchAuditService implements AuditDriver
 
     public function createIndex(): string
     {
-        $this->client->setAsync();
         if ($this->client->isIndexExists($this->index)) {
             return $this->index;
         }
         $this->client->createIndex($this->index, $this->auditType);
 
         $this->client->updateAliases($this->index);
-
-        $this->client->setAsync(true);
 
         return $this->index;
     }
@@ -153,7 +143,6 @@ class ElasticsearchAuditService implements AuditDriver
     {
         $this->client->setClient(
             client: $client,
-            isAsync: $isAsync,
         );
 
         return $this;
