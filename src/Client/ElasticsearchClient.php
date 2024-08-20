@@ -21,7 +21,9 @@ class ElasticsearchClient
 
     private Client $client;
 
-    public function __construct() {}
+    public function __construct()
+    {
+    }
 
     public function setClient(?Client $client = null): self
     {
@@ -108,7 +110,7 @@ class ElasticsearchClient
                 [
                     'add' => [
                         'index' => $index,
-                        'alias' => $index . '_write',
+                        'alias' => $index.'_write',
                     ],
                 ],
             ],
@@ -124,7 +126,7 @@ class ElasticsearchClient
         int $replicaNumber = 0
     ): Elasticsearch|Promise {
         $mappings = new MappingModel();
-        $params = [
+        $params   = [
             'index' => $index,
             'type'  => $auditType,
             'body'  => [

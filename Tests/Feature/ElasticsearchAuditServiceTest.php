@@ -60,7 +60,7 @@ class ElasticsearchAuditServiceTest extends TestCase
      */
     public function testIndexDocument(bool $shouldReturnResult, bool $expectedResult): void
     {
-        $user = $this->getUser()->toArray();
+        $user    = $this->getUser()->toArray();
         $service = $this->getService(
             statuses: [200],
             bodies: [],
@@ -76,7 +76,7 @@ class ElasticsearchAuditServiceTest extends TestCase
 
     public function testSearchDocument(): void
     {
-        $user = $this->getUser();
+        $user    = $this->getUser();
         $service = $this->getService(
             statuses: [200, 200, 200],
             bodies: [],
@@ -93,7 +93,7 @@ class ElasticsearchAuditServiceTest extends TestCase
 
     public function testSearch(): void
     {
-        $user = $this->getUser();
+        $user    = $this->getUser();
         $service = $this->getService(
             statuses: [200, 200, 200],
             bodies: [],
@@ -117,7 +117,7 @@ class ElasticsearchAuditServiceTest extends TestCase
 
     public function testDeleteDocument(): void
     {
-        $user = $this->getUser();
+        $user    = $this->getUser();
         $service = $this->getService(
             statuses: [200, 200, 200],
             bodies: [],
