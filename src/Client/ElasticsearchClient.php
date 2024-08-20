@@ -110,10 +110,10 @@ class ElasticsearchClient
                 [
                     'add' => [
                         'index' => $index,
-                        'alias' => $index.'_write'
-                    ]
-                ]
-            ]
+                        'alias' => $index.'_write',
+                    ],
+                ],
+            ],
         ];
 
         return $this->client->indices()->updateAliases($params);
@@ -150,9 +150,8 @@ class ElasticsearchClient
     {
         $result = $this->client->search($params);
 
-        throw_if($result instanceof Promise, new Exception('Async handler is not implemented!'));
+        throw_unless($result instanceof Elasticsearch, 'Async handler is not implemented!');
 
-        /** @var Elasticsearch $result */
         return $result;
     }
 
@@ -208,7 +207,7 @@ class ElasticsearchClient
             return false;
         }
 
-        throw_if($rawResult instanceof Promise, new Exception('Async handler is not implemented!'));
+        throw_unless($rawResult instanceof Elasticsearch, new Exception('Async handler is not implemented!'));
 
         /** @var Elasticsearch $rawResult */
         return $rawResult

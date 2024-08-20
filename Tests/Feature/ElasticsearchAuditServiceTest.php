@@ -33,7 +33,7 @@ class ElasticsearchAuditServiceTest extends TestCase
 
         $result = $service->createIndex();
 
-        $this->assertSame('mocked', $result);
+        static::assertSame('mocked', $result);
     }
 
     /**
@@ -52,7 +52,7 @@ class ElasticsearchAuditServiceTest extends TestCase
 
         $result = $service->deleteIndex();
 
-        $this->assertSame($expectedResult, $result);
+        static::assertSame($expectedResult, $result);
     }
 
     /**
@@ -71,7 +71,7 @@ class ElasticsearchAuditServiceTest extends TestCase
             shouldReturnResult: $shouldReturnResult,
         );
 
-        $this->assertSame($expectedResult, $result);
+        static::assertSame($expectedResult, $result);
     }
 
     public function testSearchDocument(): void
@@ -87,8 +87,32 @@ class ElasticsearchAuditServiceTest extends TestCase
 
         $result = $service->searchAuditDocument($user);
 
-        $this->assertTrue($result->asBool());
-        $this->assertSame($result->asArray(), $result->asArray());
+        static::assertTrue($result->asBool());
+        static::assertSame($result->asArray(), $result->asArray());
+    }
+
+    public function testSearch(): void
+    {
+        $user    = $this->getUser();
+        $service = $this->getService(
+            statuses: [200, 200, 200],
+            bodies: [],
+            shouldBind: true,
+        );
+        $service->indexDocument($user->toArray());
+        $service->indexDocument([
+            'id'   => 314159,
+            'name' => 'Not John Doe']);
+
+        $result = $service
+            ->setDateRange(null)
+            ->setDateRange(now()->subDays(1))
+            ->setTerm('auditable_id', 314159)
+            ->setTerm('auditable_id', $user->id)
+            ->search();
+
+        static::assertTrue($result->asBool());
+        static::assertSame($result->asArray(), $result->asArray());
     }
 
     public function testDeleteDocument(): void
@@ -105,10 +129,12 @@ class ElasticsearchAuditServiceTest extends TestCase
 
         $result = $service->deleteAuditDocument($user->id, true);
 
-        $this->assertTrue($result);
+        static::assertTrue($result);
     }
 
-    /** @dataProvider providePruneDocumentCases */
+    /**
+     * @dataProvider providePruneDocumentCases
+     */
     public function testPruneDocument(int $threshold, bool $expectedResult): void
     {
         Config::set('audit.threshold', $threshold);
@@ -119,10 +145,10 @@ class ElasticsearchAuditServiceTest extends TestCase
         );
         $result = $service->prune($this->getUser(), true);
 
-        $this->assertSame($expectedResult, $result);
+        static::assertSame($expectedResult, $result);
     }
 
-    public function testAudit() : void
+    public function testAudit(): void
     {
         Config::set('audit.user.resolver', UserResolver::class);
         $service = $this->getService(
@@ -139,11 +165,11 @@ class ElasticsearchAuditServiceTest extends TestCase
         $user->setAuditEvent('saving');
         $result = $service->audit($user);
 
-        $this->assertInstanceOf(Audit::class, $result);
+        static::assertInstanceOf(Audit::class, $result);
 
         $searchResult = $service->searchAuditDocument($user);
-        $this->assertTrue($searchResult->asBool());
-        $this->assertSame($searchResult->asArray(), $searchResult->asArray());
+        static::assertTrue($searchResult->asBool());
+        static::assertSame($searchResult->asArray(), $searchResult->asArray());
     }
 
     public function testIsAsync(): void
@@ -154,10 +180,12 @@ class ElasticsearchAuditServiceTest extends TestCase
             shouldBind: true,
         );
 
-        $this->assertFalse($service->isAsync());
+        static::assertFalse($service->isAsync());
     }
 
-    /** @return array<int, array<string, int>> */
+    /**
+     * @return array<int, array<string, int>>
+     */
     public static function provideCreateIndexCases(): iterable
     {
         return [
@@ -170,7 +198,9 @@ class ElasticsearchAuditServiceTest extends TestCase
         ];
     }
 
-    /** @return array<int, array<string, bool>> */
+    /**
+     * @return array<int, array<string, bool>>
+     */
     public static function provideIndexDocumentCases(): iterable
     {
         return [
@@ -185,10 +215,12 @@ class ElasticsearchAuditServiceTest extends TestCase
         ];
     }
 
-    /** @return array<int, array<string, null|bool>> */
+    /**
+     * @return array<int, array<string, null|bool>>
+     */
     public static function provideDeleteIndexCases(): iterable
     {
-        return  [
+        return [
             [
                 'isIndexExists'  => false,
                 'expectedResult' => true,
@@ -200,10 +232,12 @@ class ElasticsearchAuditServiceTest extends TestCase
         ];
     }
 
-    /** @return array<int, array<string, bool|int>> */
+    /**
+     * @return array<int, array<string, bool|int>>
+     */
     public static function providePruneDocumentCases(): iterable
     {
-        return[
+        return [
             [
                 'threshold'      => 0,
                 'expectedResult' => false,
