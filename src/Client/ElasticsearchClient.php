@@ -21,9 +21,7 @@ class ElasticsearchClient
 
     private Client $client;
 
-    public function __construct()
-    {
-    }
+    public function __construct() {}
 
     public function setClient(?Client $client = null): self
     {
@@ -110,10 +108,10 @@ class ElasticsearchClient
                 [
                     'add' => [
                         'index' => $index,
-                        'alias' => $index.'_write'
-                    ]
-                ]
-            ]
+                        'alias' => $index . '_write',
+                    ],
+                ],
+            ],
         ];
 
         return $this->client->indices()->updateAliases($params);
@@ -126,7 +124,7 @@ class ElasticsearchClient
         int $replicaNumber = 0
     ): Elasticsearch|Promise {
         $mappings = new MappingModel();
-        $params   = [
+        $params = [
             'index' => $index,
             'type'  => $auditType,
             'body'  => [
@@ -150,9 +148,8 @@ class ElasticsearchClient
     {
         $result = $this->client->search($params);
 
-        throw_if($result instanceof Promise, new Exception('Async handler is not implemented!'));
+        throw_unless($result instanceof Elasticsearch, 'Async handler is not implemented!');
 
-        /** @var Elasticsearch $result */
         return $result;
     }
 
@@ -208,9 +205,9 @@ class ElasticsearchClient
             return false;
         }
 
-        throw_if($rawResult instanceof Promise, new Exception('Async handler is not implemented!'));
+        throw_unless($rawResult instanceof Elasticsearch, new Exception('Async handler is not implemented!'));
 
-        /** @var Elasticsearch $rawResult */
+        // @var Elasticsearch $rawResult
         return $rawResult
             ->asBool();
     }
