@@ -23,16 +23,16 @@ class ElasticsearchAuditService implements AuditDriver
         /** @var array<string, mixed> $query */
         private array $query = [],
     ) {
-        $index = config('audit.drivers.elastic.index');
-        $auditType = config('audit.drivers.elastic.type');
+        $index          = config('audit.drivers.elastic.index');
+        $auditType      = config('audit.drivers.elastic.type');
         $implementation = config('audit.implementation');
 
         assert(is_string($index));
         assert(is_string($auditType));
         assert(is_string($implementation) && class_exists($implementation));
 
-        $this->index = $index;
-        $this->auditType = $auditType;
+        $this->index          = $index;
+        $this->auditType      = $auditType;
         $this->implementation = $implementation;
         $this->setBaseQuery();
         $this->client->setClient();
