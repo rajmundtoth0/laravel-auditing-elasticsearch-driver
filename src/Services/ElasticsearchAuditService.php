@@ -23,16 +23,16 @@ class ElasticsearchAuditService implements AuditDriver
         /** @var array<string, mixed> $query */
         private array $query = [],
     ) {
-        $index          = config('audit.drivers.elastic.index');
-        $auditType      = config('audit.drivers.elastic.type');
+        $index = config('audit.drivers.elastic.index');
+        $auditType = config('audit.drivers.elastic.type');
         $implementation = config('audit.implementation');
 
         assert(is_string($index));
         assert(is_string($auditType));
         assert(is_string($implementation) && class_exists($implementation));
 
-        $this->index          = $index;
-        $this->auditType      = $auditType;
+        $this->index = $index;
+        $this->auditType = $auditType;
         $this->implementation = $implementation;
         $this->setBaseQuery();
         $this->client->setClient();
@@ -107,7 +107,7 @@ class ElasticsearchAuditService implements AuditDriver
 
     public function setTerm(string $name, int|string $value): self
     {
-        /** @var Elasticsearch $rawResult */
+        // @var Elasticsearch $rawResult
         $this->query['body']['query']['bool']['should'][] = [
             'term' => [
                 $name => $value,
@@ -201,7 +201,7 @@ class ElasticsearchAuditService implements AuditDriver
         return $this->index;
     }
 
-    public function setClient(?Client $client = null, bool $isAsync = false): self
+    public function setClient(?Client $client = null): self
     {
         $this->client->setClient(
             client: $client,
