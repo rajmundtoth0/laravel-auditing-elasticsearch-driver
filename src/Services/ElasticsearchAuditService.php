@@ -107,7 +107,7 @@ class ElasticsearchAuditService implements AuditDriver
 
     public function setTerm(string $name, int|string $value): self
     {
-        /** @var Elasticsearch $rawResult */
+        /** @phpstan-ignore-next-line */
         $this->query['body']['query']['bool']['should'][] = [
             'term' => [
                 $name => $value,
