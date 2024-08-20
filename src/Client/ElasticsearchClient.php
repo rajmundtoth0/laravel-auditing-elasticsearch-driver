@@ -209,7 +209,7 @@ class ElasticsearchClient
 
         throw_unless($rawResult instanceof Elasticsearch, new Exception('Async handler is not implemented!'));
 
-        // @var Elasticsearch $rawResult
+        /** @var Elasticsearch $rawResult */
         return $rawResult
             ->asBool();
     }
