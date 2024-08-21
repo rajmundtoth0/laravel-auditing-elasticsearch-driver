@@ -46,9 +46,6 @@ class ElasticsearchAuditService implements AuditDriver
             'body'  => [
                 'query' => [
                     'bool' => [
-                        'must' => [
-                            'range' => [],
-                        ],
                         'minimum_should_match' => 1,
                     ],
                 ],
@@ -107,7 +104,7 @@ class ElasticsearchAuditService implements AuditDriver
 
     public function setTerm(string $name, int|string $value): self
     {
-        // @phpstan-ignore-next-line
+        /** @phpstan-ignore-next-line */
         $this->query['body']['query']['bool']['should'][] = [
             'term' => [
                 $name => $value,

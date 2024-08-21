@@ -10,9 +10,8 @@ class ElasticsearchAuditingServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        if (!$this->app->runningInConsole()) {
-            $this->app->singleton(ElasticsearchAuditService::class);
-        } else {
+        $this->app->singleton(ElasticsearchAuditService::class);
+        if ($this->app->runningInConsole()) {
             $this->commands([
                 ElasticsearchSetupCommand::class,
             ]);
