@@ -102,7 +102,8 @@ class ElasticsearchAuditServiceTest extends TestCase
         $service->indexDocument($user->toArray());
         $service->indexDocument([
             'id'   => 314159,
-            'name' => 'Not John Doe']);
+            'name' => 'Not John Doe',
+        ]);
 
         $result = $service
             ->setDateRange(null)

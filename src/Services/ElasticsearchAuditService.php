@@ -46,9 +46,6 @@ class ElasticsearchAuditService implements AuditDriver
             'body'  => [
                 'query' => [
                     'bool' => [
-                        'must' => [
-                            'range' => [],
-                        ],
                         'minimum_should_match' => 1,
                     ],
                 ],
