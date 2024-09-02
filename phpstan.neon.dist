@@ -1,8 +1,14 @@
 includes:
-    - vendor/phpstan/phpstan-mockery/extension.neon
-    - vendor/larastan/larastan/extension.neon
+	- vendor/phpstan/phpstan-phpunit/extension.neon
+	- vendor/larastan/larastan/extension.neon
 parameters:
 	level: max
 	paths:
 		- src
 		- Tests
+	exceptions:
+		reportUncheckedExceptionDeadCatch: true
+		implicitThrows: false
+		check:
+			missingCheckedExceptionInThrows: true
+			tooWideThrowType: true

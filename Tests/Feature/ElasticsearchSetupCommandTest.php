@@ -2,6 +2,7 @@
 
 namespace rajmundtoth0\AuditDriver\Tests\Feature;
 
+use Exception;
 use Illuminate\Testing\PendingCommand;
 use rajmundtoth0\AuditDriver\Tests\TestCase;
 
@@ -10,11 +11,9 @@ use rajmundtoth0\AuditDriver\Tests\TestCase;
  */
 class ElasticsearchSetupCommandTest extends TestCase
 {
-    protected function setUp(): void
-    {
-        parent::setUp();
-    }
-
+    /**
+     * @throws Exception
+     */
     public function testSetupCommand(): void
     {
         $service = $this->getService(

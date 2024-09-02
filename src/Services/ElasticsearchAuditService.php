@@ -4,17 +4,28 @@ namespace rajmundtoth0\AuditDriver\Services;
 
 use Carbon\Carbon;
 use Elastic\Elasticsearch\Client;
-
+use Elastic\Elasticsearch\Exception\ClientResponseException;
+use Elastic\Elasticsearch\Exception\MissingParameterException;
+use Elastic\Elasticsearch\Exception\ServerResponseException;
 use Elastic\Elasticsearch\Response\Elasticsearch;
+use Elastic\Transport\Exception\NoNodeAvailableException;
 use OwenIt\Auditing\Contracts\Audit;
 use OwenIt\Auditing\Contracts\Auditable;
 use OwenIt\Auditing\Contracts\AuditDriver;
+use OwenIt\Auditing\Exceptions\AuditingException;
 use rajmundtoth0\AuditDriver\Client\ElasticsearchClient;
+use rajmundtoth0\AuditDriver\Exceptions\AuditDriverConfigNotSetException;
+use rajmundtoth0\AuditDriver\Exceptions\AuditDriverException;
+use rajmundtoth0\AuditDriver\Exceptions\AuditDriverMissingCaCertException;
 use rajmundtoth0\AuditDriver\Models\DocumentModel;
 use Ramsey\Uuid\Uuid;
 
 class ElasticsearchAuditService implements AuditDriver
 {
+    /**
+     * @throws AuditDriverConfigNotSetException
+     * @throws AuditDriverMissingCaCertException
+     */
     public function __construct(
         private readonly ElasticsearchClient $client,
         private string $implementation = '',
@@ -54,6 +65,14 @@ class ElasticsearchAuditService implements AuditDriver
         ];
     }
 
+    /**
+     * @throws AuditDriverException
+     * @throws AuditingException
+     * @throws ClientResponseException
+     * @throws MissingParameterException
+     * @throws NoNodeAvailableException
+     * @throws ServerResponseException
+     */
     public function audit(Auditable $model): Audit
     {
         $this->indexDocument($model->toAudit());
@@ -63,6 +82,13 @@ class ElasticsearchAuditService implements AuditDriver
         return $implementation;
     }
 
+    /**
+     * @throws AuditDriverException
+     * @throws ClientResponseException
+     * @throws MissingParameterException
+     * @throws NoNodeAvailableException
+     * @throws ServerResponseException
+     */
     public function prune(Auditable $model, bool $shouldReturnResult = false): bool
     {
         if ($model->getAuditThreshold() <= 0) {
@@ -76,6 +102,12 @@ class ElasticsearchAuditService implements AuditDriver
 
     /**
      * @param array<string, mixed> $model
+     *
+     * @throws AuditDriverException
+     * @throws ClientResponseException
+     * @throws MissingParameterException
+     * @throws NoNodeAvailableException
+     * @throws ServerResponseException
      */
     public function indexDocument(array $model, bool $shouldReturnResult = false): ?bool
     {
@@ -114,6 +146,12 @@ class ElasticsearchAuditService implements AuditDriver
         return $this;
     }
 
+    /**
+     * @throws AuditDriverException
+     * @throws ClientResponseException
+     * @throws NoNodeAvailableException
+     * @throws ServerResponseException
+     */
     public function searchAuditDocument(
         Auditable $model,
         int $pageSize = 10_000,
@@ -160,6 +198,12 @@ class ElasticsearchAuditService implements AuditDriver
         return $this->client->search($params);
     }
 
+    /**
+     * @throws AuditDriverException
+     * @throws ClientResponseException
+     * @throws NoNodeAvailableException
+     * @throws ServerResponseException
+     */
     public function search(
         int $pageSize = 10_000,
         ?int $from = 0,
@@ -172,6 +216,13 @@ class ElasticsearchAuditService implements AuditDriver
         return $this->client->search($this->query);
     }
 
+    /**
+     * @throws AuditDriverException
+     * @throws ClientResponseException
+     * @throws MissingParameterException
+     * @throws NoNodeAvailableException
+     * @throws ServerResponseException
+     */
     public function deleteAuditDocument(int|string $documentId, bool $shouldReturnResult = false): bool
     {
         return $this
@@ -179,6 +230,13 @@ class ElasticsearchAuditService implements AuditDriver
             ->deleteDocument($this->index, $documentId, $shouldReturnResult);
     }
 
+    /**
+     * @throws AuditDriverException
+     * @throws ClientResponseException
+     * @throws MissingParameterException
+     * @throws NoNodeAvailableException
+     * @throws ServerResponseException
+     */
     public function deleteIndex(): bool
     {
         return $this
@@ -186,6 +244,13 @@ class ElasticsearchAuditService implements AuditDriver
             ->deleteIndex($this->index);
     }
 
+    /**
+     * @throws AuditDriverException
+     * @throws ClientResponseException
+     * @throws MissingParameterException
+     * @throws NoNodeAvailableException
+     * @throws ServerResponseException
+     */
     public function createIndex(): string
     {
         if ($this->client->isIndexExists($this->index)) {
@@ -198,6 +263,10 @@ class ElasticsearchAuditService implements AuditDriver
         return $this->index;
     }
 
+    /**
+     * @throws AuditDriverConfigNotSetException
+     * @throws AuditDriverMissingCaCertException
+     */
     public function setClient(?Client $client = null): self
     {
         $this->client->setClient(
