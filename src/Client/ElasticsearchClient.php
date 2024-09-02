@@ -193,6 +193,9 @@ class ElasticsearchClient
             ->getResult($result, true);
     }
 
+    /**
+     * @throws Exception
+     */
     public function index(DocumentModel $model, bool $shouldReturnResult): bool
     {
         $result = $this->client->index($model->toArray());
@@ -201,6 +204,10 @@ class ElasticsearchClient
             ->getResult($result, $shouldReturnResult);
     }
 
+
+    /**
+     * @throws Exception
+     */
     private function getResult(Elasticsearch|Promise $rawResult, bool $shouldReturnResult = false): bool
     {
         if (!$shouldReturnResult) {
