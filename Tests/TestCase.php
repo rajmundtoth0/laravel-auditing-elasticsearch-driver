@@ -9,6 +9,7 @@ use Exception;
 use Http\Mock\Client as MockHttpClient;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\ServiceProvider;
 use Nyholm\Psr7\Response;
 use Orchestra\Testbench\TestCase as Orchestra;
 use OwenIt\Auditing\Models\Audit;
@@ -45,7 +46,7 @@ class TestCase extends Orchestra
         $this->loadMigrationsFrom(__DIR__.'/Migration');
     }
 
-    /** @return array<int, string> */
+    /** @return list<class-string<ServiceProvider>> */
     protected function getPackageProviders($app): array
     {
         return [
@@ -65,7 +66,6 @@ class TestCase extends Orchestra
             bodies: $bodies,
             shouldThrowException: $shouldThrowException,
         );
-        /** @var ElasticsearchAuditService $service*/
         $service = resolve(ElasticsearchAuditService::class)
             ->setClient($mockedElasticClient);
 
@@ -107,14 +107,6 @@ class TestCase extends Orchestra
             ->build();
     }
 
-    protected function getElasticsearchAuditService(): ElasticsearchAuditService
-    {
-        /** @var ElasticsearchAuditService */
-        $service = resolve(ElasticsearchAuditService::class);
-
-        return $service;
-    }
-
     /**
      * @param array<int|string, mixed> $body
      * @throws Exception
@@ -138,7 +130,6 @@ class TestCase extends Orchestra
 
     protected function getUser(): User
     {
-        /** @var User $user */
         $user = User::factory()->make();
 
         return $user;

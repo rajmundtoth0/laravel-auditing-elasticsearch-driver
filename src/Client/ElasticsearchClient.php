@@ -52,7 +52,7 @@ class ElasticsearchClient
      */
     public function setCaBundle(): void
     {
-        if (!config('audit.drivers.elastic.useCaCert', true)) {
+        if (!config('audit.drivers.elastic.useCaCert', false)) {
             return;
         }
         if (!$caCert = config('audit.drivers.elastic.certPath', false)) {
@@ -79,7 +79,7 @@ class ElasticsearchClient
      */
     public function setBasicAuth(): void
     {
-        if (!config('audit.drivers.elastic.useBasicAuth', true)) {
+        if (!config('audit.drivers.elastic.useBasicAuth', false)) {
             return;
         }
         if (!$userName = config('audit.drivers.elastic.userName', false)) {
@@ -106,7 +106,7 @@ class ElasticsearchClient
      */
     public function setHosts(): void
     {
-        $hosts = config('audit.drivers.elastic.hosts', []);
+        $hosts = config('audit.drivers.elastic.hosts', ['localhost']);
         if (!$hosts || !is_array($hosts)) {
             throw new AuditDriverConfigNotSetException(
                 message: 'Key audit.drivers.elastic.hosts is unset or has incorrect data type. Expected: array.',

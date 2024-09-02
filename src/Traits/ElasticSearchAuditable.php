@@ -13,7 +13,7 @@ use rajmundtoth0\AuditDriver\Services\ElasticsearchAuditService;
 trait ElasticSearchAuditable
 {
     /**
-     * @return Collection<int, mixed>
+     * @return Collection<array-key, mixed>
      *
      * @throws AuditDriverException
      * @throws ClientResponseException
@@ -23,7 +23,6 @@ trait ElasticSearchAuditable
      */
     public function elasticsearchAuditLog(int $page = 1, int $pageSize = 10, string $sort = 'desc'): Collection
     {
-        /** @var ElasticsearchAuditService */
         $elasticsearchAuditService = resolve(ElasticsearchAuditService::class);
         $result                    = $elasticsearchAuditService->searchAuditDocument(
             model: $this,
