@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use Exception;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use rajmundtoth0\AuditDriver\Client\ElasticsearchClient;
@@ -12,11 +13,9 @@ use rajmundtoth0\AuditDriver\Tests\TestCase;
  */
 class ElasticsearchClientTest extends TestCase
 {
-    protected function setUp(): void
-    {
-        parent::setUp();
-    }
-
+    /**
+     * @throws Exception
+     */
     public function testSetClient(): void
     {
         $client = resolve(ElasticsearchClient::class)
@@ -25,6 +24,9 @@ class ElasticsearchClientTest extends TestCase
         static::assertInstanceOf(ElasticsearchClient::class, $client);
     }
 
+    /**
+     * @throws Exception
+     */
     public function testSetCaBundle(): void
     {
         Storage::fake();
@@ -41,6 +43,9 @@ class ElasticsearchClientTest extends TestCase
         static::assertInstanceOf(ElasticsearchClient::class, $client);
     }
 
+    /**
+     * @throws Exception
+     */
     public function testBasicAuth(): void
     {
         Config::set('audit.drivers.elastic.useBasicAuth', false);

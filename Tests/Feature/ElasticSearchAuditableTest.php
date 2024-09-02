@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use Exception;
 use Illuminate\Support\Collection;
 use rajmundtoth0\AuditDriver\Tests\TestCase;
 
@@ -10,11 +11,9 @@ use rajmundtoth0\AuditDriver\Tests\TestCase;
  */
 class ElasticSearchAuditableTest extends TestCase
 {
-    protected function setUp(): void
-    {
-        parent::setUp();
-    }
-
+    /**
+     * @throws Exception
+     */
     public function testCallGetAuditLogAttribute(): void
     {
         $body = [

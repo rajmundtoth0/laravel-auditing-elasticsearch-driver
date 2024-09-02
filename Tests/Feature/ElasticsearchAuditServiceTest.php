@@ -2,10 +2,12 @@
 
 namespace rajmundtoth0\AuditDriver\Tests\Feature;
 
+use Exception;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Hash;
 use OwenIt\Auditing\Contracts\Audit;
 use OwenIt\Auditing\Resolvers\UserResolver;
+use PHPUnit\Framework\Attributes\DataProvider;
 use rajmundtoth0\AuditDriver\Tests\Model\User;
 use rajmundtoth0\AuditDriver\Tests\TestCase;
 
@@ -14,14 +16,10 @@ use rajmundtoth0\AuditDriver\Tests\TestCase;
  */
 class ElasticsearchAuditServiceTest extends TestCase
 {
-    protected function setUp(): void
-    {
-        parent::setUp();
-    }
-
     /**
-     * @dataProvider provideCreateIndexCases
+     * @throws Exception
      */
+    #[DataProvider('provideCreateIndexCases')]
     public function testCreateIndex(int $firstStatus): void
     {
         $service = $this->getService(
@@ -37,8 +35,9 @@ class ElasticsearchAuditServiceTest extends TestCase
     }
 
     /**
-     * @dataProvider provideDeleteIndexCases
+     * @throws Exception
      */
+    #[DataProvider('provideDeleteIndexCases')]
     public function testDeleteIndex(bool $isIndexExists, bool $expectedResult): void
     {
         $service = $this->getService(
@@ -56,8 +55,9 @@ class ElasticsearchAuditServiceTest extends TestCase
     }
 
     /**
-     * @dataProvider provideIndexDocumentCases
+     * @throws Exception
      */
+    #[DataProvider('provideIndexDocumentCases')]
     public function testIndexDocument(bool $shouldReturnResult, bool $expectedResult): void
     {
         $user    = $this->getUser()->toArray();
@@ -74,6 +74,9 @@ class ElasticsearchAuditServiceTest extends TestCase
         static::assertSame($expectedResult, $result);
     }
 
+    /**
+     * @throws Exception
+     */
     public function testSearchDocument(): void
     {
         $user    = $this->getUser();
@@ -91,6 +94,9 @@ class ElasticsearchAuditServiceTest extends TestCase
         static::assertSame($result->asArray(), $result->asArray());
     }
 
+    /**
+     * @throws Exception
+     */
     public function testSearch(): void
     {
         $user    = $this->getUser();
@@ -116,6 +122,9 @@ class ElasticsearchAuditServiceTest extends TestCase
         static::assertSame($result->asArray(), $result->asArray());
     }
 
+    /**
+     * @throws Exception
+     */
     public function testDeleteDocument(): void
     {
         $user    = $this->getUser();
@@ -134,8 +143,9 @@ class ElasticsearchAuditServiceTest extends TestCase
     }
 
     /**
-     * @dataProvider providePruneDocumentCases
+     * @throws Exception
      */
+    #[DataProvider('providePruneDocumentCases')]
     public function testPruneDocument(int $threshold, bool $expectedResult): void
     {
         Config::set('audit.threshold', $threshold);
@@ -149,6 +159,9 @@ class ElasticsearchAuditServiceTest extends TestCase
         static::assertSame($expectedResult, $result);
     }
 
+    /**
+     * @throws Exception
+     */
     public function testAudit(): void
     {
         Config::set('audit.user.resolver', UserResolver::class);
@@ -173,6 +186,9 @@ class ElasticsearchAuditServiceTest extends TestCase
         static::assertSame($searchResult->asArray(), $searchResult->asArray());
     }
 
+    /**
+     * @throws Exception
+     */
     public function testIsAsync(): void
     {
         $service = $this->getService(

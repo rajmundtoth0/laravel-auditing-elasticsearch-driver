@@ -2,8 +2,10 @@
 
 namespace rajmundtoth0\AuditDriver\Tests\Feature;
 
+use Exception;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
+use PHPUnit\Framework\Attributes\DataProvider;
 use rajmundtoth0\AuditDriver\Client\ElasticsearchClient;
 use rajmundtoth0\AuditDriver\Exceptions\AuditDriverConfigNotSetException;
 use rajmundtoth0\AuditDriver\Exceptions\AuditDriverMissingCaCertException;
@@ -14,14 +16,10 @@ use rajmundtoth0\AuditDriver\Tests\TestCase;
  */
 class ElasticsearchClientExceptionsTest extends TestCase
 {
-    protected function setUp(): void
-    {
-        parent::setUp();
-    }
-
     /**
-     * @dataProvider provideConfigNotSetExceptionCases
+     * @throws Exception
      */
+    #[DataProvider('provideConfigNotSetExceptionCases')]
     public function testConfigNotSetException(string $key, string $message): void
     {
         $this->expectException(AuditDriverConfigNotSetException::class);
@@ -33,6 +31,9 @@ class ElasticsearchClientExceptionsTest extends TestCase
             ->setClient();
     }
 
+    /**
+     * @throws Exception
+     */
     public function testCaCertMissingException(): void
     {
         Storage::fake();

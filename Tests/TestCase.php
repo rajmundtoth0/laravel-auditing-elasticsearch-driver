@@ -5,6 +5,7 @@ namespace rajmundtoth0\AuditDriver\Tests;
 use Elastic\Elasticsearch\Client;
 use Elastic\Elasticsearch\ClientBuilder;
 use Elastic\Elasticsearch\Response\Elasticsearch;
+use Exception;
 use Http\Mock\Client as MockHttpClient;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Config;
@@ -20,6 +21,9 @@ use rajmundtoth0\AuditDriver\Tests\Model\User;
  */
 class TestCase extends Orchestra
 {
+    /**
+     * @throws Exception
+     */
     protected function setUp(): void
     {
         parent::setUp();
@@ -52,6 +56,7 @@ class TestCase extends Orchestra
     /**
      * @param array<int, int> $statuses
      * @param array<int, array<mixed>> $bodies
+     * @throws Exception
      */
     protected function getService(array $statuses = [200], array $bodies = [], bool $shouldBind = false, bool $shouldThrowException = true): ElasticsearchAuditService
     {
@@ -75,6 +80,7 @@ class TestCase extends Orchestra
     /**
      * @param array<int, int> $statuses
      * @param array<int, array<mixed>> $bodies
+     * @throws Exception
      */
     protected function getMockedElasticClient(array $statuses, array $bodies, bool $shouldThrowException = true): Client
     {
@@ -111,6 +117,7 @@ class TestCase extends Orchestra
 
     /**
      * @param array<int|string, mixed> $body
+     * @throws Exception
      */
     protected function getElasticResponse(int $status = 200, array $body = []): Elasticsearch
     {
