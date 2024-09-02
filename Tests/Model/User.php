@@ -21,8 +21,8 @@ class User extends Model implements AuditableContract
     use ElasticSearchAuditable;
     use \OwenIt\Auditing\Auditable;
 
-    /** 
-     * @use HasFactory<UserFactory> 
+    /**
+     * @use HasFactory<UserFactory>
      */
     use HasFactory;
 
