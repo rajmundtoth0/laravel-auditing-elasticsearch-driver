@@ -8,10 +8,11 @@ class MappingModel
 
     private const DEFAULT_DATE_FORMAT = 'yyyy-MM-dd HH:mm:ss';
 
-    public function __construct(
-        private string $dateFormat = '',
-    ) {
-        $dateFormatConfig = config(self::DATE_FORMAT_CONFIG_KEY, null);
+    private readonly string $dateFormat;
+
+    public function __construct()
+    {
+        $dateFormatConfig = config(self::DATE_FORMAT_CONFIG_KEY);
         $dateFormatConfig ??= self::DEFAULT_DATE_FORMAT;
         assert(is_string($dateFormatConfig));
         $this->dateFormat = $dateFormatConfig;
@@ -54,7 +55,7 @@ class MappingModel
         ];
     }
 
-    /** @return array<string, string> */
+    /** @return array{type:string, format:string} */
     private function getDateField(): array
     {
         return [

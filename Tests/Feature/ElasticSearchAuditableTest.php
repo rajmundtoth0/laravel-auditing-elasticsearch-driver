@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use Exception;
-use Illuminate\Support\Collection;
 use rajmundtoth0\AuditDriver\Tests\TestCase;
 
 /**
@@ -40,7 +39,6 @@ class ElasticSearchAuditableTest extends TestCase
             'name' => 'Test Doe',
         ]);
 
-        /** @var Collection<int, mixed> $auditLogs */
         $auditLogs = $user->auditLog;
 
         $this->assertSame($body, $auditLogs->toArray());

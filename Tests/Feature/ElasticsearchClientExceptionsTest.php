@@ -25,6 +25,7 @@ class ElasticsearchClientExceptionsTest extends TestCase
         $this->expectException(AuditDriverConfigNotSetException::class);
         $this->expectExceptionMessage($message);
 
+        Config::set('audit.drivers.elastic.useBasicAuth', true);
         Config::set('audit.drivers.elastic.useCaCert', true);
         Config::set($key, null);
         resolve(ElasticsearchClient::class)

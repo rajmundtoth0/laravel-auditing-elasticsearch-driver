@@ -9,6 +9,8 @@ use Elastic\Elasticsearch\Exception\MissingParameterException;
 use Elastic\Elasticsearch\Exception\ServerResponseException;
 use Elastic\Elasticsearch\Response\Elasticsearch;
 use Elastic\Transport\Exception\NoNodeAvailableException;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Arr;
 use OwenIt\Auditing\Contracts\Audit;
 use OwenIt\Auditing\Contracts\Auditable;
 use OwenIt\Auditing\Contracts\AuditDriver;
@@ -22,25 +24,32 @@ use Ramsey\Uuid\Uuid;
 
 class ElasticsearchAuditService implements AuditDriver
 {
+    public readonly string $index;
+
+    /** @var class-string<Audit> */
+    private readonly string $implementation;
+
+    private readonly string $auditType;
+
     /**
      * @throws AuditDriverConfigNotSetException
      * @throws AuditDriverMissingCaCertException
      */
     public function __construct(
         private readonly ElasticsearchClient $client,
-        private string $implementation = '',
-        private string $auditType = '',
-        public string $index = 'laravel_auditing',
         /** @var array<string, mixed> $query */
         private array $query = [],
     ) {
-        $index          = config('audit.drivers.elastic.index');
-        $auditType      = config('audit.drivers.elastic.type');
+        $index = config('audit.drivers.elastic.index');
+        $index ??= 'laravel_auditing';
+        $auditType = config('audit.drivers.elastic.type');
+        $auditType ??= '';
         $implementation = config('audit.implementation');
+        $implementation ??= Audit::class;
 
         assert(is_string($index));
         assert(is_string($auditType));
-        assert(is_string($implementation) && class_exists($implementation));
+        assert(is_string($implementation) && is_subclass_of($implementation, Audit::class));
 
         $this->index          = $index;
         $this->auditType      = $auditType;
@@ -83,6 +92,8 @@ class ElasticsearchAuditService implements AuditDriver
     }
 
     /**
+     * @param Auditable&Model $model
+     *
      * @throws AuditDriverException
      * @throws ClientResponseException
      * @throws MissingParameterException
@@ -94,10 +105,10 @@ class ElasticsearchAuditService implements AuditDriver
         if ($model->getAuditThreshold() <= 0) {
             return false;
         }
-        /** @phpstan-ignore-next-line */
-        $id = $model->id;
+        $key = $model->getKey();
+        assert(is_string($key) || is_int($key));
 
-        return $this->deleteAuditDocument($id, $shouldReturnResult);
+        return $this->deleteAuditDocument($key, $shouldReturnResult);
     }
 
     /**
@@ -136,12 +147,11 @@ class ElasticsearchAuditService implements AuditDriver
 
     public function setTerm(string $name, int|string $value): self
     {
-        /** @phpstan-ignore-next-line */
-        $this->query['body']['query']['bool']['should'][] = [
+        Arr::set($this->query, 'body.query.bool.should', [
             'term' => [
                 $name => $value,
             ],
-        ];
+        ]);
 
         return $this;
     }
@@ -153,15 +163,14 @@ class ElasticsearchAuditService implements AuditDriver
      * @throws ServerResponseException
      */
     public function searchAuditDocument(
-        Auditable $model,
+        Model&Auditable $model,
         int $pageSize = 10_000,
         ?int $from = null,
         string $sort = 'desc',
     ): Elasticsearch {
         $from ??= $model->getAuditThreshold() - 1;
 
-        /** @phpstan-ignore-next-line */
-        $id = $model->id;
+        $key = $model->getKey();
 
         assert(method_exists($model, 'getMorphClass'));
         $params = [
@@ -175,7 +184,7 @@ class ElasticsearchAuditService implements AuditDriver
                         'must' => [
                             [
                                 'term' => [
-                                    'auditable_id' => $id,
+                                    'auditable_id' => $key,
                                 ],
                             ],
                             [
