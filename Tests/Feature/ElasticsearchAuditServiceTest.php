@@ -10,7 +10,6 @@ use OwenIt\Auditing\Contracts\Audit;
 use OwenIt\Auditing\Resolvers\UserResolver;
 use PHPUnit\Framework\Attributes\DataProvider;
 use rajmundtoth0\AuditDriver\Jobs\IndexAuditDocumentJob;
-use rajmundtoth0\AuditDriver\Models\DocumentModel;
 use rajmundtoth0\AuditDriver\Tests\Model\User;
 use rajmundtoth0\AuditDriver\Tests\TestCase;
 
@@ -77,12 +76,11 @@ class ElasticsearchAuditServiceTest extends TestCase
         );
 
         if ($shouldUseQueue) {
-            Queue::assertPushed(IndexAuditDocumentJob::class, 
-                fn($job): bool => 
-                $job->queue === 'audits'
-                && $job->connection === 'redis'
+            Queue::assertPushed(IndexAuditDocumentJob::class,
+                fn($job): bool => 'audits' === $job->queue
+                && 'redis' === $job->connection
             );
-        } 
+        }
         static::assertSame($expectedResult, $result);
     }
 
@@ -228,7 +226,7 @@ class ElasticsearchAuditServiceTest extends TestCase
     }
 
     /**
-     * @return array<int, array<string, bool|null>>
+     * @return array<int, array<string, null|bool>>
      */
     public static function provideIndexDocumentCases(): iterable
     {
