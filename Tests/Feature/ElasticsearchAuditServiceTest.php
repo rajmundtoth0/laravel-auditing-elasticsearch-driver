@@ -5,9 +5,12 @@ namespace rajmundtoth0\AuditDriver\Tests\Feature;
 use Exception;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Queue;
 use OwenIt\Auditing\Contracts\Audit;
 use OwenIt\Auditing\Resolvers\UserResolver;
 use PHPUnit\Framework\Attributes\DataProvider;
+use rajmundtoth0\AuditDriver\Jobs\IndexAuditDocumentJob;
+use rajmundtoth0\AuditDriver\Models\DocumentModel;
 use rajmundtoth0\AuditDriver\Tests\Model\User;
 use rajmundtoth0\AuditDriver\Tests\TestCase;
 
@@ -58,8 +61,10 @@ class ElasticsearchAuditServiceTest extends TestCase
      * @throws Exception
      */
     #[DataProvider('provideIndexDocumentCases')]
-    public function testIndexDocument(bool $shouldReturnResult, bool $expectedResult): void
+    public function testIndexDocument(bool $shouldReturnResult, ?bool $expectedResult, bool $shouldUseQueue): void
     {
+        Config::set('audit.drivers.queue.enabled', $shouldUseQueue);
+        Queue::fake();
         $user    = $this->getUser()->toArray();
         $service = $this->getService(
             statuses: [200],
@@ -71,6 +76,13 @@ class ElasticsearchAuditServiceTest extends TestCase
             shouldReturnResult: $shouldReturnResult,
         );
 
+        if ($shouldUseQueue) {
+            Queue::assertPushed(IndexAuditDocumentJob::class, 
+                fn($job): bool => 
+                $job->queue === 'audits'
+                && $job->connection === 'redis'
+            );
+        } 
         static::assertSame($expectedResult, $result);
     }
 
@@ -216,7 +228,7 @@ class ElasticsearchAuditServiceTest extends TestCase
     }
 
     /**
-     * @return array<int, array<string, bool>>
+     * @return array<int, array<string, bool|null>>
      */
     public static function provideIndexDocumentCases(): iterable
     {
@@ -224,10 +236,22 @@ class ElasticsearchAuditServiceTest extends TestCase
             [
                 'shouldReturnResult' => false,
                 'expectedResult'     => false,
+                'shouldUseQueue'     => false,
             ],
             [
                 'shouldReturnResult' => true,
                 'expectedResult'     => true,
+                'shouldUseQueue'     => false,
+            ],
+            [
+                'shouldReturnResult' => false,
+                'expectedResult'     => null,
+                'shouldUseQueue'     => true,
+            ],
+            [
+                'shouldReturnResult' => true,
+                'expectedResult'     => null,
+                'shouldUseQueue'     => true,
             ],
         ];
     }

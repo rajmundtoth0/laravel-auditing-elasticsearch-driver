@@ -43,6 +43,9 @@ class TestCase extends Orchestra
         Config::set('audit.drivers.elastic.useCaCert', false);
         Config::set('audit.drivers.elastic.useAsyncClient', false);
         Config::set('audit.drivers.elastic.certPath', 'http_ca.crt');
+        Config::set('audit.drivers.queue.enabled', false);
+        Config::set('audit.drivers.queue.name', 'audits');
+        Config::set('audit.drivers.queue.connection', 'redis');
         $this->loadMigrationsFrom(__DIR__.'/Migration');
     }
 
