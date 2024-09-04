@@ -77,10 +77,11 @@ class ElasticsearchAuditServiceTest extends TestCase
 
         if ($shouldUseQueue) {
             Queue::assertPushed(IndexAuditDocumentJob::class,
-                fn($job): bool => 'audits' === $job->queue
-                && 'redis' === $job->connection
+                fn($job): bool => $job->queue === 'audits'
+                && $job->connection === 'redis'
             );
         }
+
         static::assertSame($expectedResult, $result);
     }
 
