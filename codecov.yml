@@ -1,0 +1,13 @@
+comment: no
+coverage:
+  range: "9...85"
+  status:
+    project:
+      default:
+        threshold: 0.02%
+        target: 0%
+    patch:
+      default:
+        target: 0%
+github_checks:
+    annotations: false
