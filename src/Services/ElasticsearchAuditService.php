@@ -66,8 +66,15 @@ class ElasticsearchAuditService implements AuditDriver
         assert(is_string($implementation) && is_subclass_of($implementation, Audit::class));
         assert(is_bool($useQueue));
 
-        assert($useQueue ? (is_string($queueName) && $queueName) : ($queueName === null));
-        assert($useQueue ? (is_string($queueConnection) && $queueConnection) : ($queueConnection === null));
+        if ($useQueue) {
+            assert(is_string($queueName) && $queueName);
+            assert(is_string($queueConnection) && $queueConnection);
+        }
+
+        if (!$useQueue) {
+            assert(null === $queueName);
+            assert(null === $queueConnection);
+        }
 
         $this->index           = $index;
         $this->auditType       = $auditType;
