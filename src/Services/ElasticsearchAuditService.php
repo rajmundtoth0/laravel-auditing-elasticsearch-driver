@@ -34,9 +34,9 @@ class ElasticsearchAuditService implements AuditDriver
 
     private bool $useQueue;
 
-    private ?string $queueName;
+    private string $queueName;
 
-    private ?string $queueConnection;
+    private string $queueConnection;
 
     /**
      * @throws AuditDriverConfigNotSetException
@@ -58,22 +58,19 @@ class ElasticsearchAuditService implements AuditDriver
         $auditType       = config('audit.drivers.elastic.type', '');
         $implementation  = config('audit.implementation', Audit::class);
         $useQueue        = config('audit.drivers.queue.enabled', false);
-        $queueName       = config('audit.drivers.queue.name', null);
-        $queueConnection = config('audit.drivers.queue.connection', null);
+        $queueName       = config('audit.drivers.queue.name', '');
+        $queueConnection = config('audit.drivers.queue.connection', '');
 
         assert(is_string($index));
         assert(is_string($auditType));
         assert(is_string($implementation) && is_subclass_of($implementation, Audit::class));
         assert(is_bool($useQueue));
+        assert(is_string($queueName));
+        assert(is_string($queueConnection));
 
         if ($useQueue) {
-            assert(is_string($queueName) && $queueName);
-            assert(is_string($queueConnection) && $queueConnection);
-        }
-
-        if (!$useQueue) {
-            assert(null === $queueName);
-            assert(null === $queueConnection);
+            assert($queueName);
+            assert($queueConnection);
         }
 
         $this->index           = $index;
