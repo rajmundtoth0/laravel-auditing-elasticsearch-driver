@@ -19,17 +19,24 @@ use rajmundtoth0\AuditDriver\Client\ElasticsearchClient;
 use rajmundtoth0\AuditDriver\Exceptions\AuditDriverConfigNotSetException;
 use rajmundtoth0\AuditDriver\Exceptions\AuditDriverException;
 use rajmundtoth0\AuditDriver\Exceptions\AuditDriverMissingCaCertException;
+use rajmundtoth0\AuditDriver\Jobs\IndexAuditDocumentJob;
 use rajmundtoth0\AuditDriver\Models\DocumentModel;
 use Ramsey\Uuid\Uuid;
 
 class ElasticsearchAuditService implements AuditDriver
 {
-    public readonly string $index;
+    public string $index;
 
     /** @var class-string<Audit> */
-    private readonly string $implementation;
+    private string $implementation;
 
-    private readonly string $auditType;
+    private string $auditType;
+
+    private bool $useQueue;
+
+    private string $queueName;
+
+    private string $queueConnection;
 
     /**
      * @throws AuditDriverConfigNotSetException
@@ -40,22 +47,38 @@ class ElasticsearchAuditService implements AuditDriver
         /** @var array<string, mixed> $query */
         private array $query = [],
     ) {
-        $index = config('audit.drivers.elastic.index');
-        $index ??= 'laravel_auditing';
-        $auditType = config('audit.drivers.elastic.type');
-        $auditType ??= '';
-        $implementation = config('audit.implementation');
-        $implementation ??= Audit::class;
+        $this->loadConfigs();
+        $this->setBaseQuery();
+        $this->client->setClient();
+    }
+
+    private function loadConfigs(): void
+    {
+        $index           = config('audit.drivers.elastic.index', 'laravel_auditing');
+        $auditType       = config('audit.drivers.elastic.type', '');
+        $implementation  = config('audit.implementation', Audit::class);
+        $useQueue        = config('audit.drivers.queue.enabled', false);
+        $queueName       = config('audit.drivers.queue.name', '');
+        $queueConnection = config('audit.drivers.queue.connection', '');
 
         assert(is_string($index));
         assert(is_string($auditType));
         assert(is_string($implementation) && is_subclass_of($implementation, Audit::class));
+        assert(is_bool($useQueue));
+        assert(is_string($queueName));
+        assert(is_string($queueConnection));
 
-        $this->index          = $index;
-        $this->auditType      = $auditType;
-        $this->implementation = $implementation;
-        $this->setBaseQuery();
-        $this->client->setClient();
+        if ($useQueue) {
+            assert($queueName);
+            assert($queueConnection);
+        }
+
+        $this->index           = $index;
+        $this->auditType       = $auditType;
+        $this->implementation  = $implementation;
+        $this->useQueue        = $useQueue;
+        $this->queueName       = $queueName;
+        $this->queueConnection = $queueConnection;
     }
 
     private function setBaseQuery(): void
@@ -122,14 +145,34 @@ class ElasticsearchAuditService implements AuditDriver
      */
     public function indexDocument(array $model, bool $shouldReturnResult = false): ?bool
     {
-        $params = new DocumentModel(
+        $document = new DocumentModel(
             index: $this->index,
             id: Uuid::uuid4(),
             type: $this->auditType,
             body: $model,
         );
 
-        return $this->client->index($params, $shouldReturnResult);
+        if (!$this->useQueue) {
+            return $this->index($document, $shouldReturnResult);
+        }
+
+        dispatch(new IndexAuditDocumentJob($document))
+            ->onQueue($this->queueName)
+            ->onConnection($this->queueConnection);
+
+        return null;
+    }
+
+    /**
+     * @throws AuditDriverException
+     * @throws ClientResponseException
+     * @throws MissingParameterException
+     * @throws NoNodeAvailableException
+     * @throws ServerResponseException
+     */
+    public function index(DocumentModel $document, bool $shouldReturnResult = false): ?bool
+    {
+        return $this->client->index($document, $shouldReturnResult);
     }
 
     public function setDateRange(
@@ -163,7 +206,7 @@ class ElasticsearchAuditService implements AuditDriver
      * @throws ServerResponseException
      */
     public function searchAuditDocument(
-        Model&Auditable $model,
+        Auditable&Model $model,
         int $pageSize = 10_000,
         ?int $from = null,
         string $sort = 'desc',

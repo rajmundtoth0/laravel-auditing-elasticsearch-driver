@@ -95,19 +95,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Queue Auditable Models
-    |--------------------------------------------------------------------------
-    |
-    | This option allows you to control if the operations that audit your models
-    | with your auditors are queued. When this is set to "true" then all models
-    | auditable will get queued for better performance.
-    |
-    */
-
-    'queue' => env('AUDIT_QUEUE', true),
-
-    /*
-    |--------------------------------------------------------------------------
     | Audit Driver
     |--------------------------------------------------------------------------
     |
@@ -142,7 +129,12 @@ return [
             'certPath'     => env('AUDIT_CERT_PATH', false),
             'index'        => env('AUDIT_INDEX', 'laravel_auditing'),
             'type'         => env('AUDIT_TYPE', 'audits'),
-        ]
+        ],
+        'queue' => [
+            'enabled'    => env('AUDIT_QUEUE_ENABLED', false),
+            'connection' => env('AUDIT_QUEUE_CONNECTION', false),
+            'name'       => env('AUDIT_QUEUE_NAME', 'audits'),
+        ],
     ],
 
     /*
