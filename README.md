@@ -61,7 +61,12 @@ The `drivers` key of the config file should look like so:
             'certPath'     => env('AUDIT_CERT_PATH', false),
             'index'        => env('AUDIT_INDEX', 'laravel_auditing'),
             'type'         => env('AUDIT_TYPE', 'audits'),
-        ]
+        ],
+        'queue' => [
+            'enabled'    => env('AUDIT_QUEUE_ENABLED', false),
+            'connection' => env('AUDIT_QUEUE_CONNECTION', false),
+            'name'       => env('AUDIT_QUEUE_NAME', 'audits'),
+        ],
     ],
     ...
 ```
@@ -80,7 +85,6 @@ The following structure ensures to store the audits in Elasticsearch:
 <?php
 namespace App\Models;
 
-use rajmundtoth0\AuditDriver\Drivers\ElasticSearch;
 use Illuminate\Database\Eloquent\Model;
 use OwenIt\Auditing\Auditable;
 use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
@@ -88,14 +92,6 @@ use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 class SomeModel extends Model implements AuditableContract
 {
     use Auditable;
-
-    /**
-     * ElasticSearch Audit Driver
-     *
-     * @var rajmundtoth0\AuditDriver\Drivers\ElasticSearch
-     */
-    protected $auditDriver = ElasticSearch::class;
-
     // ...
 }
 ```
@@ -136,6 +132,9 @@ trait ElasticSearchAuditable
     }
 }
 ```
+
+Queue:
+When the queue configuration is set, the driver will dispatch a job to index each document.
 
 ## Contribution
 
