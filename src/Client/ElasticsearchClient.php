@@ -171,7 +171,7 @@ class ElasticsearchClient
     /**
      * @param array<string, mixed> $params
      *
-     * @throws AuditDriverConfigNotSetException
+     * @throws AuditDriverException
      * @throws ClientResponseException
      * @throws NoNodeAvailableException
      * @throws ServerResponseException
@@ -181,7 +181,7 @@ class ElasticsearchClient
         $result = $this->client->search($params);
 
         if (!$result instanceof Elasticsearch) {
-            throw new AuditDriverConfigNotSetException('Async handler is not implemented!');
+            throw new AuditDriverException('Async handler is not implemented!');
         }
 
         return $result;
