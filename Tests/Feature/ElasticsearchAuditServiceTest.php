@@ -93,7 +93,7 @@ class ElasticsearchAuditServiceTest extends TestCase
         $user    = $this->getUser();
         $service = $this->getService(
             statuses: [200, 200, 200],
-            bodies: [],
+            bodies: [null, null, $user->toArray()],
             shouldBind: true,
         );
         $service->indexDocument($user->toArray());
@@ -102,7 +102,7 @@ class ElasticsearchAuditServiceTest extends TestCase
         $result = $service->searchAuditDocument($user);
 
         static::assertTrue($result->asBool());
-        static::assertSame($result->asArray(), $result->asArray());
+        static::assertSame($user->toArray(), $result->asArray());
     }
 
     /**
@@ -113,7 +113,7 @@ class ElasticsearchAuditServiceTest extends TestCase
         $user    = $this->getUser();
         $service = $this->getService(
             statuses: [200, 200, 200],
-            bodies: [],
+            bodies: [null, null, $user->toArray()],
             shouldBind: true,
         );
         $service->indexDocument($user->toArray());
@@ -130,7 +130,7 @@ class ElasticsearchAuditServiceTest extends TestCase
             ->search();
 
         static::assertTrue($result->asBool());
-        static::assertSame($result->asArray(), $result->asArray());
+        static::assertSame($user->toArray(), $result->asArray());
     }
 
     /**

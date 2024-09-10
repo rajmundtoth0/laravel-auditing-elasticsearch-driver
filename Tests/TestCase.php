@@ -59,7 +59,7 @@ class TestCase extends Orchestra
 
     /**
      * @param array<int, int> $statuses
-     * @param array<int, array<mixed>> $bodies
+     * @param array<int, null|array<mixed>> $bodies
      * @throws Exception
      */
     protected function getService(array $statuses = [200], array $bodies = [], bool $shouldBind = false, bool $shouldThrowException = true): ElasticsearchAuditService
@@ -82,7 +82,7 @@ class TestCase extends Orchestra
 
     /**
      * @param array<int, int> $statuses
-     * @param array<int, array<mixed>> $bodies
+     * @param array<int, null|array<mixed>> $bodies
      * @throws Exception
      */
     protected function getMockedElasticClient(array $statuses, array $bodies, bool $shouldThrowException = true): Client
