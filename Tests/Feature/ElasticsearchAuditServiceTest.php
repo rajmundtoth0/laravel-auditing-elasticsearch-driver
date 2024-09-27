@@ -122,12 +122,19 @@ class ElasticsearchAuditServiceTest extends TestCase
             'name' => 'Not John Doe',
         ]);
 
+        $query = [
+            'bool' => [
+                'must' => [
+                    [
+                        'term' => [
+                            'auditable_id' => $user->id,
+                        ],
+                    ],
+                ],
+            ],
+        ];
         $result = $service
-            ->setDateRange(null)
-            ->setDateRange(now()->subDays(1))
-            ->setTerm('auditable_id', 314159)
-            ->setTerm('auditable_id', $user->id)
-            ->search();
+            ->search(query: $query);
 
         static::assertTrue($result->asBool());
         static::assertSame($user->toArray(), $result->asArray());
