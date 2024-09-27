@@ -2,7 +2,6 @@
 
 namespace rajmundtoth0\AuditDriver\Services;
 
-use Carbon\Carbon;
 use Elastic\Elasticsearch\Client;
 use Elastic\Elasticsearch\Exception\ClientResponseException;
 use Elastic\Elasticsearch\Exception\MissingParameterException;
@@ -10,7 +9,6 @@ use Elastic\Elasticsearch\Exception\ServerResponseException;
 use Elastic\Elasticsearch\Response\Elasticsearch;
 use Elastic\Transport\Exception\NoNodeAvailableException;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Arr;
 use OwenIt\Auditing\Contracts\Audit;
 use OwenIt\Auditing\Contracts\Auditable;
 use OwenIt\Auditing\Contracts\AuditDriver;
@@ -44,11 +42,8 @@ class ElasticsearchAuditService implements AuditDriver
      */
     public function __construct(
         private readonly ElasticsearchClient $client,
-        /** @var array<string, mixed> $query */
-        private array $query = [],
     ) {
         $this->loadConfigs();
-        $this->setBaseQuery();
         $this->client->setClient();
     }
 
@@ -79,22 +74,6 @@ class ElasticsearchAuditService implements AuditDriver
         $this->useQueue        = $useQueue;
         $this->queueName       = $queueName;
         $this->queueConnection = $queueConnection;
-    }
-
-    private function setBaseQuery(): void
-    {
-        $this->query = [
-            'index' => $this->index,
-            'type'  => $this->auditType,
-            'body'  => [
-                'query' => [
-                    'bool' => [
-                        'minimum_should_match' => 1,
-                    ],
-                ],
-                'track_scores' => true,
-            ],
-        ];
     }
 
     /**
@@ -175,30 +154,6 @@ class ElasticsearchAuditService implements AuditDriver
         return $this->client->index($document, $shouldReturnResult);
     }
 
-    public function setDateRange(
-        ?Carbon $date,
-        string $name = 'created_at',
-        string $operator = 'gte',
-    ): self {
-        if (!$date) {
-            return $this;
-        }
-        data_set($this->query, "body.query.bool.must.range.{$name}.{$operator}", $date->toDateTimeString());
-
-        return $this;
-    }
-
-    public function setTerm(string $name, int|string $value): self
-    {
-        Arr::set($this->query, 'body.query.bool.should', [
-            'term' => [
-                $name => $value,
-            ],
-        ]);
-
-        return $this;
-    }
-
     /**
      * @throws AuditDriverException
      * @throws ClientResponseException
@@ -251,21 +206,16 @@ class ElasticsearchAuditService implements AuditDriver
     }
 
     /**
+     * @param array<string, mixed> $query
+     *
      * @throws AuditDriverException
      * @throws ClientResponseException
      * @throws NoNodeAvailableException
      * @throws ServerResponseException
      */
-    public function search(
-        int $pageSize = 10_000,
-        ?int $from = 0,
-        string $sort = 'desc',
-    ): Elasticsearch {
-        data_set($this->query, 'size', $pageSize);
-        data_set($this->query, 'from', $from);
-        data_set($this->query, 'body.sort.created_at.order', $sort);
-
-        return $this->client->search($this->query);
+    public function search(array $query = []): Elasticsearch
+    {
+        return $this->client->search($query);
     }
 
     /**
