@@ -219,6 +219,19 @@ class ElasticsearchAuditService implements AuditDriver
     }
 
     /**
+     * @param array<string, mixed> $query
+     *
+     * @throws AuditDriverException
+     * @throws ClientResponseException
+     * @throws NoNodeAvailableException
+     * @throws ServerResponseException
+     */
+    public function count(array $query = []): Elasticsearch
+    {
+        return $this->client->count($query);
+    }
+
+    /**
      * @throws AuditDriverException
      * @throws ClientResponseException
      * @throws MissingParameterException

@@ -188,6 +188,25 @@ class ElasticsearchClient
     }
 
     /**
+     * @param array<string, mixed> $params
+     *
+     * @throws AuditDriverException
+     * @throws ClientResponseException
+     * @throws NoNodeAvailableException
+     * @throws ServerResponseException
+     */
+    public function count(array $params): Elasticsearch
+    {
+        $result = $this->client->count($params);
+
+        if (!$result instanceof Elasticsearch) {
+            throw new AuditDriverException('Async handler is not implemented!');
+        }
+
+        return $result;
+    }
+
+    /**
      * @throws AuditDriverException
      * @throws ClientResponseException
      * @throws MissingParameterException
