@@ -172,6 +172,7 @@ class ElasticsearchAuditServiceTest extends TestCase
             ->count(query: $query);
 
         $count = $result->asObject();
+        assert(property_exists($count, 'count'));
 
         static::assertTrue($result->asBool());
         static::assertSame(1, $count->count);
