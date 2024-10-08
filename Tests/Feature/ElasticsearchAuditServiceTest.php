@@ -143,6 +143,44 @@ class ElasticsearchAuditServiceTest extends TestCase
     /**
      * @throws Exception
      */
+    public function testCount(): void
+    {
+        $user    = $this->getUser();
+        $service = $this->getService(
+            statuses: [200, 200, 200],
+            bodies: [null, null, ['count' => 1]],
+            shouldBind: true,
+        );
+        $service->indexDocument($user->toArray());
+        $service->indexDocument([
+            'id'   => 314159,
+            'name' => 'Not John Doe',
+        ]);
+
+        $query = [
+            'bool' => [
+                'must' => [
+                    [
+                        'term' => [
+                            'auditable_id' => $user->id,
+                        ],
+                    ],
+                ],
+            ],
+        ];
+        $result = $service
+            ->count(query: $query);
+
+        $count = $result->asObject();
+        assert(property_exists($count, 'count'));
+
+        static::assertTrue($result->asBool());
+        static::assertSame(1, $count->count);
+    }
+
+    /**
+     * @throws Exception
+     */
     public function testDeleteDocument(): void
     {
         $user    = $this->getUser();
