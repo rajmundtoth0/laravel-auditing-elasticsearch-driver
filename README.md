@@ -1,6 +1,6 @@
 [![Version](https://poser.pugx.org/rajmundtoth0/laravel-auditing-elasticsearch-driver/version)](https://packagist.org/packages/rajmundtoth0/laravel-auditing-elasticsearch-driver)
 [![codecov](https://codecov.io/gh/rajmundtoth0/laravel-auditing-elasticsearch-driver/graph/badge.svg?token=X6X3UEP77B)](https://codecov.io/gh/rajmundtoth0/laravel-auditing-elasticsearch-driver)
-[![PHPStan](https://img.shields.io/badge/PHPStan-Level%209-brightgreen.svg?style=flat&logo=php)](https://shields.io/#/)
+![PHPStan](https://img.shields.io/badge/PHPStan-Level_MAX-brightgreen)
 [![Build](https://github.com/rajmundtoth0/laravel-auditing-elasticsearch-driver/actions/workflows/php.yml/badge.svg)](https://github.com/rajmundtoth0/laravel-auditing-elasticsearch-driver/actions/workflows/php.yml)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/16db5d58566c47ad99bac0bc1373997d)](https://app.codacy.com?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 [![PHP Version Require](https://poser.pugx.org/rajmundtoth0/laravel-auditing-elasticsearch-driver/require/php)](https://packagist.org/packages/rajmundtoth0/laravel-auditing-elasticsearch-driver)
