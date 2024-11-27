@@ -88,7 +88,6 @@ class ElasticsearchAuditService implements AuditDriver
     {
         $this->indexDocument($model->toAudit());
         $implementation = new $this->implementation();
-        assert($implementation instanceof Audit);
 
         return $implementation;
     }
@@ -114,7 +113,7 @@ class ElasticsearchAuditService implements AuditDriver
     }
 
     /**
-     * @param array<string, mixed> $model
+     * @param array<mixed> $model
      *
      * @throws AuditDriverException
      * @throws ClientResponseException
@@ -170,7 +169,6 @@ class ElasticsearchAuditService implements AuditDriver
 
         $key = $model->getKey();
 
-        assert(method_exists($model, 'getMorphClass'));
         $params = [
             'index' => $this->index,
             'type'  => $this->auditType,

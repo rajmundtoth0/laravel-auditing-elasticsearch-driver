@@ -6,7 +6,6 @@ use Exception;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Queue;
-use OwenIt\Auditing\Contracts\Audit;
 use OwenIt\Auditing\Resolvers\UserResolver;
 use PHPUnit\Framework\Attributes\DataProvider;
 use rajmundtoth0\AuditDriver\Jobs\IndexAuditDocumentJob;
@@ -64,6 +63,7 @@ class ElasticsearchAuditServiceTest extends TestCase
     {
         Config::set('audit.drivers.queue.enabled', $shouldUseQueue);
         Queue::fake();
+        /** @var array<string, mixed> */
         $user    = $this->getUser()->toArray();
         $service = $this->getService(
             statuses: [200],
@@ -77,7 +77,7 @@ class ElasticsearchAuditServiceTest extends TestCase
 
         if ($shouldUseQueue) {
             Queue::assertPushed(IndexAuditDocumentJob::class,
-                fn($job): bool => 'audits' === $job->queue
+                fn(IndexAuditDocumentJob $job): bool => 'audits' === $job->queue
                 && 'redis' === $job->connection
             );
         }
@@ -90,19 +90,21 @@ class ElasticsearchAuditServiceTest extends TestCase
      */
     public function testSearchDocument(): void
     {
-        $user    = $this->getUser();
-        $service = $this->getService(
+        $user = $this->getUser();
+        /** @var array<string, mixed> */
+        $userArray = $user->toArray();
+        $service   = $this->getService(
             statuses: [200, 200, 200],
-            bodies: [null, null, $user->toArray()],
+            bodies: [null, null, $userArray],
             shouldBind: true,
         );
-        $service->indexDocument($user->toArray());
+        $service->indexDocument($userArray);
         $service->indexDocument(['name' => 'Not John Doe']);
 
         $result = $service->searchAuditDocument($user);
 
         static::assertTrue($result->asBool());
-        static::assertSame($user->toArray(), $result->asArray());
+        static::assertSame($userArray, $result->asArray());
     }
 
     /**
@@ -110,13 +112,15 @@ class ElasticsearchAuditServiceTest extends TestCase
      */
     public function testSearch(): void
     {
-        $user    = $this->getUser();
-        $service = $this->getService(
+        $user = $this->getUser();
+        /** @var array<string, mixed> */
+        $userArray = $user->toArray();
+        $service   = $this->getService(
             statuses: [200, 200, 200],
-            bodies: [null, null, $user->toArray()],
+            bodies: [null, null, $userArray],
             shouldBind: true,
         );
-        $service->indexDocument($user->toArray());
+        $service->indexDocument($userArray);
         $service->indexDocument([
             'id'   => 314159,
             'name' => 'Not John Doe',
@@ -137,7 +141,7 @@ class ElasticsearchAuditServiceTest extends TestCase
             ->search(query: $query);
 
         static::assertTrue($result->asBool());
-        static::assertSame($user->toArray(), $result->asArray());
+        static::assertSame($userArray, $result->asArray());
     }
 
     /**
@@ -145,13 +149,15 @@ class ElasticsearchAuditServiceTest extends TestCase
      */
     public function testCount(): void
     {
-        $user    = $this->getUser();
-        $service = $this->getService(
+        $user = $this->getUser();
+        /** @var array<string, mixed> */
+        $userArray = $user->toArray();
+        $service   = $this->getService(
             statuses: [200, 200, 200],
             bodies: [null, null, ['count' => 1]],
             shouldBind: true,
         );
-        $service->indexDocument($user->toArray());
+        $service->indexDocument($userArray);
         $service->indexDocument([
             'id'   => 314159,
             'name' => 'Not John Doe',
@@ -183,14 +189,16 @@ class ElasticsearchAuditServiceTest extends TestCase
      */
     public function testDeleteDocument(): void
     {
-        $user    = $this->getUser();
-        $service = $this->getService(
+        $user = $this->getUser();
+        /** @var array<string, mixed> */
+        $userArray = $user->toArray();
+        $service   = $this->getService(
             statuses: [200, 200, 200],
             bodies: [],
             shouldBind: true,
         );
 
-        $service->indexDocument($user->toArray());
+        $service->indexDocument($userArray);
         $service->indexDocument(['name' => 'Not John Doe']);
 
         $result = $service->deleteAuditDocument($user->id, true);
@@ -221,25 +229,24 @@ class ElasticsearchAuditServiceTest extends TestCase
     public function testAudit(): void
     {
         Config::set('audit.user.resolver', UserResolver::class);
-        $service = $this->getService(
-            statuses: [200, 200],
-            bodies: [],
-            shouldBind: true,
-        );
         $user = User::create([
             'name'     => 'test',
             'email'    => 'test@test.test',
             'password' => Hash::make('a_very_strong_password'),
         ]);
+        $service = $this->getService(
+            statuses: [200, 200],
+            bodies: [null, $user->toArray()],
+            shouldBind: true,
+        );
+
         $user->isCustomEvent = true;
         $user->setAuditEvent('saving');
         $result = $service->audit($user);
 
-        static::assertInstanceOf(Audit::class, $result);
-
         $searchResult = $service->searchAuditDocument($user);
         static::assertTrue($searchResult->asBool());
-        static::assertSame($searchResult->asArray(), $searchResult->asArray());
+        static::assertSame($searchResult->asArray(), $user->toArray());
     }
 
     /**

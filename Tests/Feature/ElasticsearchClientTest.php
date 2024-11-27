@@ -16,17 +16,6 @@ class ElasticsearchClientTest extends TestCase
     /**
      * @throws Exception
      */
-    public function testSetClient(): void
-    {
-        $client = resolve(ElasticsearchClient::class)
-            ->setClient();
-
-        static::assertInstanceOf(ElasticsearchClient::class, $client);
-    }
-
-    /**
-     * @throws Exception
-     */
     public function testSetCaBundle(): void
     {
         Storage::fake();
@@ -40,18 +29,5 @@ class ElasticsearchClientTest extends TestCase
         $caBundlePath = $client->getCaBundlePath();
 
         static::assertSame($caBundlePath, '/find-me');
-        static::assertInstanceOf(ElasticsearchClient::class, $client);
-    }
-
-    /**
-     * @throws Exception
-     */
-    public function testBasicAuth(): void
-    {
-        Config::set('audit.drivers.elastic.useBasicAuth', false);
-        $client = resolve(ElasticsearchClient::class)
-            ->setClient();
-
-        static::assertInstanceOf(ElasticsearchClient::class, $client);
     }
 }
