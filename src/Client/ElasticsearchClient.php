@@ -124,7 +124,7 @@ class ElasticsearchClient
      */
     public function updateAliases(string $index): Elasticsearch|Promise
     {
-        $params = [];
+        $params         = [];
         $params['body'] = [
             'actions' => [
                 [

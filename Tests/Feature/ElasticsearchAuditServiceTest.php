@@ -6,7 +6,6 @@ use Exception;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Queue;
-use OwenIt\Auditing\Contracts\Audit;
 use OwenIt\Auditing\Resolvers\UserResolver;
 use PHPUnit\Framework\Attributes\DataProvider;
 use rajmundtoth0\AuditDriver\Jobs\IndexAuditDocumentJob;
@@ -91,10 +90,10 @@ class ElasticsearchAuditServiceTest extends TestCase
      */
     public function testSearchDocument(): void
     {
-        $user    = $this->getUser();
+        $user = $this->getUser();
         /** @var array<string, mixed> */
         $userArray = $user->toArray();
-        $service = $this->getService(
+        $service   = $this->getService(
             statuses: [200, 200, 200],
             bodies: [null, null, $userArray],
             shouldBind: true,
@@ -113,10 +112,10 @@ class ElasticsearchAuditServiceTest extends TestCase
      */
     public function testSearch(): void
     {
-        $user    = $this->getUser();
+        $user = $this->getUser();
         /** @var array<string, mixed> */
         $userArray = $user->toArray();
-        $service = $this->getService(
+        $service   = $this->getService(
             statuses: [200, 200, 200],
             bodies: [null, null, $userArray],
             shouldBind: true,
@@ -150,10 +149,10 @@ class ElasticsearchAuditServiceTest extends TestCase
      */
     public function testCount(): void
     {
-        $user    = $this->getUser();
+        $user = $this->getUser();
         /** @var array<string, mixed> */
         $userArray = $user->toArray();
-        $service = $this->getService(
+        $service   = $this->getService(
             statuses: [200, 200, 200],
             bodies: [null, null, ['count' => 1]],
             shouldBind: true,
@@ -190,10 +189,10 @@ class ElasticsearchAuditServiceTest extends TestCase
      */
     public function testDeleteDocument(): void
     {
-        $user    = $this->getUser();
+        $user = $this->getUser();
         /** @var array<string, mixed> */
         $userArray = $user->toArray();
-        $service = $this->getService(
+        $service   = $this->getService(
             statuses: [200, 200, 200],
             bodies: [],
             shouldBind: true,
