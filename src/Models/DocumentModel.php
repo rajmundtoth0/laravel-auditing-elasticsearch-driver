@@ -8,7 +8,7 @@ class DocumentModel
         protected readonly string $index,
         protected readonly string $type,
         protected readonly string $id,
-        /** @var array<string, mixed> */
+        /** @var array<mixed> */
         protected array $body,
     ) {
         if (!array_key_exists('created_at', $this->body)) {

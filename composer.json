@@ -47,7 +47,7 @@
         "larastan/larastan": "*",
         "orchestra/testbench": "^8.21|^9.0",
         "php-http/mock-client": "^1.6",
-        "phpstan/phpstan": "^1.10",
+        "phpstan/phpstan": "^2.0.2",
         "phpstan/phpstan-phpunit": "*",
         "phpunit/phpunit": "^11.0",
         "nyholm/psr7": "^1.8"

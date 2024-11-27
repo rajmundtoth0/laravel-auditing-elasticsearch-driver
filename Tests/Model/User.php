@@ -4,8 +4,10 @@ namespace rajmundtoth0\AuditDriver\Tests\Model;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 use rajmundtoth0\AuditDriver\Traits\ElasticSearchAuditable;
+use Carbon\Carbon;
 
 /**
  * @property int $id
