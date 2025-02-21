@@ -9,6 +9,7 @@ use Elastic\Transport\Exception\NoNodeAvailableException;
 use Illuminate\Console\Command;
 use rajmundtoth0\AuditDriver\Exceptions\AuditDriverException;
 use rajmundtoth0\AuditDriver\Services\ElasticsearchAuditService;
+use RuntimeException;
 
 class ElasticsearchSetupCommand extends Command
 {
@@ -22,6 +23,7 @@ class ElasticsearchSetupCommand extends Command
      * @throws MissingParameterException
      * @throws NoNodeAvailableException
      * @throws ServerResponseException
+     * @throws RuntimeException
      */
     public function handle(ElasticsearchAuditService $elasticsearchService): void
     {

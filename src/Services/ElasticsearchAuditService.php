@@ -9,6 +9,7 @@ use Elastic\Elasticsearch\Exception\ServerResponseException;
 use Elastic\Elasticsearch\Response\Elasticsearch;
 use Elastic\Transport\Exception\NoNodeAvailableException;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Config;
 use OwenIt\Auditing\Contracts\Audit;
 use OwenIt\Auditing\Contracts\Auditable;
 use OwenIt\Auditing\Contracts\AuditDriver;
@@ -20,6 +21,7 @@ use rajmundtoth0\AuditDriver\Exceptions\AuditDriverMissingCaCertException;
 use rajmundtoth0\AuditDriver\Jobs\IndexAuditDocumentJob;
 use rajmundtoth0\AuditDriver\Models\DocumentModel;
 use Ramsey\Uuid\Uuid;
+use RuntimeException;
 
 class ElasticsearchAuditService implements AuditDriver
 {
@@ -39,6 +41,7 @@ class ElasticsearchAuditService implements AuditDriver
     /**
      * @throws AuditDriverConfigNotSetException
      * @throws AuditDriverMissingCaCertException
+     * @throws RuntimeException
      */
     public function __construct(
         private readonly ElasticsearchClient $client,
@@ -47,22 +50,19 @@ class ElasticsearchAuditService implements AuditDriver
         $this->client->setClient();
     }
 
+    /**
+     * @throws RuntimeException
+     */
     private function loadConfigs(): void
     {
-        $index           = config('audit.drivers.elastic.index', 'laravel_auditing');
-        $auditType       = config('audit.drivers.elastic.type', '');
-        $implementation  = config('audit.implementation', Audit::class);
-        $useQueue        = config('audit.drivers.queue.enabled', false);
-        $queueName       = config('audit.drivers.queue.name', '');
-        $queueConnection = config('audit.drivers.queue.connection', '');
+        $index           = Config::string('audit.drivers.elastic.index', 'laravel_auditing');
+        $auditType       = Config::string('audit.drivers.elastic.type', '');
+        $implementation  = Config::string('audit.implementation', Audit::class);
+        $useQueue        = Config::boolean('audit.drivers.queue.enabled', false);
+        $queueName       = Config::string('audit.drivers.queue.name', '');
+        $queueConnection = Config::string('audit.drivers.queue.connection', '');
 
-        assert(is_string($index));
-        assert(is_string($auditType));
-        assert(is_string($implementation) && is_subclass_of($implementation, Audit::class));
-        assert(is_bool($useQueue));
-        assert(is_string($queueName));
-        assert(is_string($queueConnection));
-
+        assert(is_subclass_of($implementation, Audit::class));
         if ($useQueue) {
             assert($queueName);
             assert($queueConnection);
@@ -263,6 +263,7 @@ class ElasticsearchAuditService implements AuditDriver
      * @throws MissingParameterException
      * @throws NoNodeAvailableException
      * @throws ServerResponseException
+     * @throws RuntimeException
      */
     public function createIndex(): string
     {
@@ -279,6 +280,7 @@ class ElasticsearchAuditService implements AuditDriver
     /**
      * @throws AuditDriverConfigNotSetException
      * @throws AuditDriverMissingCaCertException
+     * @throws RuntimeException
      */
     public function setClient(?Client $client = null): self
     {
