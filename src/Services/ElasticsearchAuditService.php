@@ -10,12 +10,12 @@ use Elastic\Elasticsearch\Response\Elasticsearch;
 use Elastic\Transport\Exception\NoNodeAvailableException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Config;
+use InvalidArgumentException;
 use OwenIt\Auditing\Contracts\Audit;
 use OwenIt\Auditing\Contracts\Auditable;
 use OwenIt\Auditing\Contracts\AuditDriver;
 use OwenIt\Auditing\Exceptions\AuditingException;
 use rajmundtoth0\AuditDriver\Client\ElasticsearchClient;
-use rajmundtoth0\AuditDriver\Exceptions\AuditDriverConfigNotSetException;
 use rajmundtoth0\AuditDriver\Exceptions\AuditDriverException;
 use rajmundtoth0\AuditDriver\Exceptions\AuditDriverMissingCaCertException;
 use rajmundtoth0\AuditDriver\Jobs\IndexAuditDocumentJob;
@@ -39,7 +39,6 @@ class ElasticsearchAuditService implements AuditDriver
     private string $queueConnection;
 
     /**
-     * @throws AuditDriverConfigNotSetException
      * @throws AuditDriverMissingCaCertException
      * @throws RuntimeException
      */
@@ -278,7 +277,6 @@ class ElasticsearchAuditService implements AuditDriver
     }
 
     /**
-     * @throws AuditDriverConfigNotSetException
      * @throws AuditDriverMissingCaCertException
      * @throws RuntimeException
      */

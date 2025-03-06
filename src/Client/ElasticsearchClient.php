@@ -8,11 +8,12 @@ use Elastic\Elasticsearch\Exception\ClientResponseException;
 use Elastic\Elasticsearch\Exception\MissingParameterException;
 use Elastic\Elasticsearch\Exception\ServerResponseException;
 use Elastic\Elasticsearch\Response\Elasticsearch;
+use Elastic\Transport\Exception\InvalidArrayException;
 use Elastic\Transport\Exception\NoNodeAvailableException;
 use Http\Promise\Promise;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
-use rajmundtoth0\AuditDriver\Exceptions\AuditDriverConfigNotSetException;
+use InvalidArgumentException;
 use rajmundtoth0\AuditDriver\Exceptions\AuditDriverException;
 use rajmundtoth0\AuditDriver\Exceptions\AuditDriverMissingCaCertException;
 use rajmundtoth0\AuditDriver\Models\DocumentModel;
@@ -28,7 +29,6 @@ class ElasticsearchClient
     private Client $client;
 
     /**
-     * @throws AuditDriverConfigNotSetException
      * @throws AuditDriverMissingCaCertException
      * @throws RuntimeException
      */
@@ -50,7 +50,6 @@ class ElasticsearchClient
     }
 
     /**
-     * @throws AuditDriverConfigNotSetException
      * @throws AuditDriverMissingCaCertException
      * @throws RuntimeException
      */
@@ -59,11 +58,7 @@ class ElasticsearchClient
         if (!Config::boolean('audit.drivers.elastic.useCaCert', false)) {
             return;
         }
-        if (!$caCert = Config::string('audit.drivers.elastic.certPath', '')) {
-            throw new AuditDriverConfigNotSetException(
-                message: 'Key audit.drivers.elastic.certPath is missing.',
-            );
-        }
+        $caCert = Config::string('audit.drivers.elastic.certPath', '');
 
         $this->caBundlePath = Storage::path($caCert);
         if (!$this->caBundlePath) {
@@ -78,7 +73,6 @@ class ElasticsearchClient
     }
 
     /**
-     * @throws AuditDriverConfigNotSetException
      * @throws RuntimeException
      */
     public function setBasicAuth(): void
@@ -86,16 +80,8 @@ class ElasticsearchClient
         if (!Config::boolean('audit.drivers.elastic.useBasicAuth', false)) {
             return;
         }
-        if (!$userName = Config::string('audit.drivers.elastic.userName', '')) {
-            throw new AuditDriverConfigNotSetException(
-                message: 'Key audit.drivers.elastic.userName is missing.',
-            );
-        }
-        if (!$password = Config::string('audit.drivers.elastic.password', '')) {
-            throw new AuditDriverConfigNotSetException(
-                message: 'Key audit.drivers.elastic.password is missing.',
-            );
-        }
+        $userName = Config::string('audit.drivers.elastic.userName', '');
+        $password = Config::string('audit.drivers.elastic.password', '');
 
         $this->clientBuilder->setBasicAuthentication(
             username: $userName,
@@ -104,17 +90,11 @@ class ElasticsearchClient
     }
 
     /**
-     * @throws AuditDriverConfigNotSetException
      * @throws RuntimeException
      */
     public function setHosts(): void
     {
-        if (!$hosts = Config::array('audit.drivers.elastic.hosts', ['localhost'])) {
-            throw new AuditDriverConfigNotSetException(
-                message: 'Key audit.drivers.elastic.hosts is unset or has incorrect data type. Expected: array.',
-            );
-        }
-
+        $hosts = Config::array('audit.drivers.elastic.hosts', ['http://localhost:9200']);
         $this->clientBuilder = ClientBuilder::create()
             ->setHosts($hosts);
     }

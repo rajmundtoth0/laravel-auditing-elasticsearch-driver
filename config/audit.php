@@ -120,7 +120,7 @@ return [
         ],
         'elastic' => [
             'hosts' => [
-                env('AUDIT_HOST', 'http://172.22.0.5:9200')
+                env('AUDIT_HOST', 'http://0.0.0.0:9200')
             ],
             'userName'     => env('ELASTIC_AUDIT_USER', 'elastic'),
             'password'     => env('ELASTIC_AUDIT_PASSWORD', 'a_very_strong_password'),

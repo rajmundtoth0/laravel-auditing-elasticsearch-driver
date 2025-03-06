@@ -14,7 +14,7 @@ class MappingModel
      */
     public function __construct()
     {
-        $this->dateFormat = Config::string('audit.drivers.elastic.dateFormat');
+        $this->dateFormat = Config::string('audit.drivers.elastic.dateFormat', 'yyyy-MM-dd HH:mm:ss');
     }
 
     /** @return array<string, array<string, array<string, array<string, string>>|string>> */
