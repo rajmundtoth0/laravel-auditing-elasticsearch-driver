@@ -8,12 +8,10 @@ use Elastic\Elasticsearch\Exception\ClientResponseException;
 use Elastic\Elasticsearch\Exception\MissingParameterException;
 use Elastic\Elasticsearch\Exception\ServerResponseException;
 use Elastic\Elasticsearch\Response\Elasticsearch;
-use Elastic\Transport\Exception\InvalidArrayException;
 use Elastic\Transport\Exception\NoNodeAvailableException;
 use Http\Promise\Promise;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
-use InvalidArgumentException;
 use rajmundtoth0\AuditDriver\Exceptions\AuditDriverException;
 use rajmundtoth0\AuditDriver\Exceptions\AuditDriverMissingCaCertException;
 use rajmundtoth0\AuditDriver\Models\DocumentModel;
@@ -94,7 +92,7 @@ class ElasticsearchClient
      */
     public function setHosts(): void
     {
-        $hosts = Config::array('audit.drivers.elastic.hosts', ['http://localhost:9200']);
+        $hosts               = Config::array('audit.drivers.elastic.hosts', ['http://localhost:9200']);
         $this->clientBuilder = ClientBuilder::create()
             ->setHosts($hosts);
     }

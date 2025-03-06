@@ -10,7 +10,6 @@ use Elastic\Elasticsearch\Response\Elasticsearch;
 use Elastic\Transport\Exception\NoNodeAvailableException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Config;
-use InvalidArgumentException;
 use OwenIt\Auditing\Contracts\Audit;
 use OwenIt\Auditing\Contracts\Auditable;
 use OwenIt\Auditing\Contracts\AuditDriver;
