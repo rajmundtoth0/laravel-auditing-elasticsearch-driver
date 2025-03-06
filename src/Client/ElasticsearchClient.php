@@ -138,6 +138,7 @@ class ElasticsearchClient
             ],
         ];
 
+        /** @phpstan-ignore argument.type */
         return $this->client->indices()->updateAliases($params);
     }
 
@@ -169,6 +170,7 @@ class ElasticsearchClient
             ],
         ];
 
+        /** @phpstan-ignore argument.type */
         return $this->client->indices()->create($params);
     }
 
@@ -182,6 +184,7 @@ class ElasticsearchClient
      */
     public function search(array $params): Elasticsearch
     {
+        /** @phpstan-ignore argument.type */
         $result = $this->client->search($params);
 
         if (!$result instanceof Elasticsearch) {
@@ -201,6 +204,7 @@ class ElasticsearchClient
      */
     public function count(array $params): Elasticsearch
     {
+        /** @phpstan-ignore argument.type */
         $result = $this->client->count($params);
 
         if (!$result instanceof Elasticsearch) {
@@ -219,6 +223,7 @@ class ElasticsearchClient
      */
     public function deleteDocument(string $index, int|string $id, bool $shouldReturnResult = false): bool
     {
+        /** @phpstan-ignore argument.type */
         $result = $this->client->delete([
             'index' => $index,
             'id'    => $id,
@@ -237,6 +242,7 @@ class ElasticsearchClient
      */
     public function deleteIndex(string $index): bool
     {
+        /** @phpstan-ignore argument.type */
         $result = $this->client->indices()->delete([
             'index' => $index,
         ]);
@@ -259,6 +265,7 @@ class ElasticsearchClient
      */
     public function isIndexExists(string $index): bool
     {
+        /** @phpstan-ignore argument.type */
         $result = $this->client->indices()->exists([
             'index' => $index,
         ]);
@@ -276,6 +283,7 @@ class ElasticsearchClient
      */
     public function index(DocumentModel $model, bool $shouldReturnResult): bool
     {
+        /** @phpstan-ignore argument.type */
         $result = $this->client->index($model->toArray());
 
         return $this
