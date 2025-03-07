@@ -2,20 +2,19 @@
 
 namespace rajmundtoth0\AuditDriver\Models;
 
+use Illuminate\Support\Facades\Config;
+use RuntimeException;
+
 class MappingModel
 {
-    private const DATE_FORMAT_CONFIG_KEY = 'audit.drivers.elastic.dateFormat';
-
-    private const DEFAULT_DATE_FORMAT = 'yyyy-MM-dd HH:mm:ss';
-
     private readonly string $dateFormat;
 
+    /**
+     * @throws RuntimeException
+     */
     public function __construct()
     {
-        $dateFormatConfig = config(self::DATE_FORMAT_CONFIG_KEY);
-        $dateFormatConfig ??= self::DEFAULT_DATE_FORMAT;
-        assert(is_string($dateFormatConfig));
-        $this->dateFormat = $dateFormatConfig;
+        $this->dateFormat = Config::string('audit.drivers.elastic.dateFormat', 'yyyy-MM-dd HH:mm:ss');
     }
 
     /** @return array<string, array<string, array<string, array<string, string>>|string>> */

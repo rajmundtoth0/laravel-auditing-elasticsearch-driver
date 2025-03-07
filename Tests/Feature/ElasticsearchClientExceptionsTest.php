@@ -5,9 +5,9 @@ namespace rajmundtoth0\AuditDriver\Tests\Feature;
 use Exception;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
+use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use rajmundtoth0\AuditDriver\Client\ElasticsearchClient;
-use rajmundtoth0\AuditDriver\Exceptions\AuditDriverConfigNotSetException;
 use rajmundtoth0\AuditDriver\Exceptions\AuditDriverMissingCaCertException;
 use rajmundtoth0\AuditDriver\Tests\TestCase;
 
@@ -22,7 +22,7 @@ class ElasticsearchClientExceptionsTest extends TestCase
     #[DataProvider('provideConfigNotSetExceptionCases')]
     public function testConfigNotSetException(string $key, string $message): void
     {
-        $this->expectException(AuditDriverConfigNotSetException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage($message);
 
         Config::set('audit.drivers.elastic.useBasicAuth', true);
@@ -55,19 +55,19 @@ class ElasticsearchClientExceptionsTest extends TestCase
         return [
             [
                 'key'     => 'audit.drivers.elastic.hosts',
-                'message' => 'Key audit.drivers.elastic.hosts is unset or has incorrect data type. Expected: array.',
+                'message' => 'Configuration value for key [audit.drivers.elastic.hosts] must be an array, NULL given.',
             ],
             [
                 'key'     => 'audit.drivers.elastic.userName',
-                'message' => 'Key audit.drivers.elastic.userName is missing.',
+                'message' => 'Configuration value for key [audit.drivers.elastic.userName] must be a string, NULL given.',
             ],
             [
                 'key'     => 'audit.drivers.elastic.password',
-                'message' => 'Key audit.drivers.elastic.password is missing.',
+                'message' => 'Configuration value for key [audit.drivers.elastic.password] must be a string, NULL given.',
             ],
             [
                 'key'     => 'audit.drivers.elastic.certPath',
-                'message' => 'Key audit.drivers.elastic.certPath is missing.',
+                'message' => 'Configuration value for key [audit.drivers.elastic.certPath] must be a string, NULL given.',
             ],
         ];
     }
