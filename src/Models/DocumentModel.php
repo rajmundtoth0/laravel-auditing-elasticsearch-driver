@@ -19,9 +19,18 @@ class DocumentModel
         }
     }
 
-    /** @return array<string, mixed> */
+    /** @return array{
+     *     id?: string, // Document ID
+     *     index: string, // (REQUIRED) The name of the index
+     *     body: string|array<mixed>, // (REQUIRED) The document. If body is a string must be a valid JSON.
+     * } */
     public function toArray(): array
     {
-        return get_object_vars($this);
+        return [
+            'index' => $this->index,
+            'type'  => $this->type,
+            'id'    => $this->id,
+            'body'  => $this->body,
+        ];
     }
 }
