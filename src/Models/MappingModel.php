@@ -3,15 +3,11 @@
 namespace rajmundtoth0\AuditDriver\Models;
 
 use Illuminate\Support\Facades\Config;
-use RuntimeException;
 
 class MappingModel
 {
     private readonly string $dateFormat;
 
-    /**
-     * @throws RuntimeException
-     */
     public function __construct()
     {
         $this->dateFormat = Config::string('audit.drivers.elastic.dateFormat', 'yyyy-MM-dd HH:mm:ss');

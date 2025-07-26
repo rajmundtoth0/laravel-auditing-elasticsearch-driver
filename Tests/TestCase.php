@@ -22,9 +22,6 @@ use rajmundtoth0\AuditDriver\Tests\Model\User;
  */
 class TestCase extends Orchestra
 {
-    /**
-     * @throws Exception
-     */
     protected function setUp(): void
     {
         parent::setUp();
