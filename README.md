@@ -137,7 +137,7 @@ trait ElasticSearchAuditable
 }
 ```
 
-Queue:
+## Queue:
 When the queue configuration is set, the driver will dispatch a job to index each document.
 
 ## Contribution
