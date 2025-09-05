@@ -133,7 +133,7 @@ return [
         ],
         'queue' => [
             'enabled'    => (bool) env('AUDIT_QUEUE_ENABLED', false),
-            'connection' => env('AUDIT_QUEUE_CONNECTION', false),
+            'connection' => env('AUDIT_QUEUE_CONNECTION', ''),
             'name'       => env('AUDIT_QUEUE_NAME', 'audits'),
         ],
     ],
