@@ -53,6 +53,7 @@ class ElasticsearchClient
     {
         if (!Config::boolean('audit.drivers.elastic.useCaCert', false)) {
             $this->clientBuilder->setSSLVerification(false);
+
             return;
         }
         $caCert = Config::string('audit.drivers.elastic.certPath', '');
