@@ -26,7 +26,7 @@
     ],
     "require": {
         "php": ">=8.2",
-        "elasticsearch/elasticsearch": "^8.0",
+        "elasticsearch/elasticsearch": "^8.0|^9.0",
         "owen-it/laravel-auditing": "^13.0|^14.0",
         "php-http/httplug": "^2.4"
     },
@@ -60,6 +60,7 @@
     "scripts": {
         "analyse": "vendor/bin/phpstan analyse --no-progress",
         "test": "vendor/bin/phpunit",
+        "test-integration": "vendor/bin/phpunit --testsuite Integration",
         "test-coverage": "vendor/bin/phpunit --coverage-html=./Tests/CoverageReport/",
         "test-coverage-ci": "vendor/bin/phpunit --coverage-clover=coverage.xml",
         "cs": "vendor/bin/php-cs-fixer fix ./",

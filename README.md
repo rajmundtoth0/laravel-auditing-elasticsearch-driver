@@ -9,137 +9,219 @@
 
 # Laravel Auditing Elasticsearch Driver
 
-This is a community elasticsearch driver for [Laravel Auditing](https://laravel-auditing.com/).
+Elasticsearch driver for [Laravel Auditing](https://laravel-auditing.com/), with support for both classic indices and Elasticsearch data streams.
 
-## Contents
+## Highlights
 
-* [Requirements](#requirements)
-* [Installation](#installation)
-* [Config](#config)
-* [Setup](#setup)
-* [Usage](#usage)
-* [Contribution](#contribution)
+- Index or data stream storage mode (`index` / `data_stream`)
+- Optional ILM lifecycle policy + index template management for data streams
+- Queue-aware indexing
+- Typed configuration and strict static analysis support
+- CI coverage for feature and integration test suites
 
 ## Requirements
 
-|   | Version |
-| ------------- | ------------- |
-| `php`  |  `>= 8.2`  |
-| `Laravel`  | `^11\|^12`  |
-| `elasticsearch/elasticsearch`  | `^8.0`  |
-| `owen-it/laravel-auditing`  | `^13.0\|^14.0`  |
+| Dependency | Supported |
+| --- | --- |
+| PHP | `>=8.2` |
+| Laravel | `^11 \| ^12` |
+| elasticsearch/elasticsearch | `^8.0 \| ^9.0` |
+| owen-it/laravel-auditing | `^13.0 \| ^14.0` |
 
 ## Installation
 
-```
+```bash
 composer require rajmundtoth0/laravel-auditing-elasticsearch-driver
 ```
 
-## Config
+If you need to publish package config:
 
-The `driver` key of the config file should look like so:
-
-```
-    ...
-    'driver' => rajmundtoth0\AuditDriver\Services\ElasticsearchAuditService::class,
-    ...
+```bash
+php artisan vendor:publish --provider="rajmundtoth0\\AuditDriver\\ElasticsearchAuditingServiceProvider"
 ```
 
-The `drivers` key of the config file should look like so:
+Set Laravel Auditing to use this driver in `config/audit.php`:
 
+```php
+'driver' => rajmundtoth0\AuditDriver\Services\ElasticsearchAuditService::class,
 ```
-    ...
-    'drivers' => [
-        'database' => [
-            'table'      => 'audits',
-            'connection' => null,
+
+## Configuration
+
+Use the `drivers.elastic` section in `config/audit.php`:
+
+```php
+'elastic' => [
+    'hosts' => [env('AUDIT_HOST', 'http://0.0.0.0:9200')],
+    'userName' => env('ELASTIC_AUDIT_USER', 'elastic'),
+    'password' => env('ELASTIC_AUDIT_PASSWORD', 'a_very_strong_password'),
+    'useBasicAuth' => (bool) env('AUDIT_BASIC_AUTH', true),
+    'useCaCert' => (bool) env('AUDIT_USE_CERT', true),
+    'certPath' => env('AUDIT_CERT_PATH', ''),
+
+    'index' => env('AUDIT_INDEX', 'laravel_auditing'),
+    'storageMode' => env('AUDIT_STORAGE_MODE', 'index'), // index|data_stream
+    'definitions' => [
+        'settings' => [
+            'path' => env('AUDIT_SETTINGS_PATH', ''),
+            'json' => env('AUDIT_SETTINGS_JSON', ''),
         ],
-        'elastic' => [
-            'hosts' => [
-                env('AUDIT_HOST', 'https://0.0.0.0:9200')
-            ],
-            'userName'     => env('ELASTIC_AUDIT_USER', 'elastic'),
-            'password'     => env('ELASTIC_AUDIT_PASSWORD', 'a_very_strong_password'),
-            'useBasicAuth' => env('AUDIT_BASIC_AUTH', true),
-            'useCaCert'    => env('AUDIT_USE_CERT', true),
-            'certPath'     => env('AUDIT_CERT_PATH', false),
-            'index'        => env('AUDIT_INDEX', 'laravel_auditing'),
-            'type'         => env('AUDIT_TYPE', 'audits'),
+        'mappings' => [
+            'path' => env('AUDIT_MAPPINGS_PATH', ''),
+            'json' => env('AUDIT_MAPPINGS_JSON', ''),
         ],
-        'queue' => [
-            'enabled'    => env('AUDIT_QUEUE_ENABLED', false),
-            'connection' => env('AUDIT_QUEUE_CONNECTION', false),
-            'name'       => env('AUDIT_QUEUE_NAME', 'audits'),
+        'lifecyclePolicy' => [
+            'path' => env('AUDIT_LIFECYCLE_POLICY_PATH', ''),
+            'json' => env('AUDIT_LIFECYCLE_POLICY_JSON', ''),
+        ],
+        'singleWriteRetry' => [
+            'path' => env('AUDIT_SINGLE_WRITE_RETRY_PATH', ''),
+            'json' => env('AUDIT_SINGLE_WRITE_RETRY_JSON', ''),
         ],
     ],
-    ...
+
+    'dataStream' => [
+        'templateName' => env('AUDIT_DATA_STREAM_TEMPLATE_NAME', ''),
+        'indexPattern' => env('AUDIT_DATA_STREAM_INDEX_PATTERN', ''),
+        'templatePriority' => (int) env('AUDIT_DATA_STREAM_TEMPLATE_PRIORITY', 100),
+        'lifecyclePolicyName' => env('AUDIT_DATA_STREAM_LIFECYCLE_POLICY', ''),
+        'pipeline' => env('AUDIT_DATA_STREAM_PIPELINE', ''),
+    ],
+    'singleWriteRetry' => [
+        'enabled' => (bool) env('AUDIT_SINGLE_WRITE_RETRY_ENABLED', true),
+    ],
+],
 ```
 
-## Setup
+### JSON Definitions
 
-Run the following artisan command after installation  to create the Elasticsearch index:
-  
-`php artisan es-audit-log:setup` 
+Default JSON definitions are stored in:
+
+- `resources/elasticsearch/settings.json`
+- `resources/elasticsearch/mappings.json`
+- `resources/elasticsearch/lifecycle-policy.json`
+- `resources/elasticsearch/single-write-retry.json`
+
+`mappings.json` defines `old_values` and `new_values` as dynamic objects, so model-specific audit keys can be indexed without predefined fields.
+
+The driver resolves each definition in this order:
+
+1. Inline JSON from `definitions.*.json`
+2. File path from `definitions.*.path`
+3. Package default JSON file in `resources/elasticsearch/`
+
+Inline JSON override example:
+
+```php
+'definitions' => [
+    'settings' => [
+        'json' => '{"number_of_shards":1,"number_of_replicas":0}',
+    ],
+    'mappings' => [
+        'json' => '{"properties":{"created_at":{"type":"date"}}}',
+    ],
+    'lifecyclePolicy' => [
+        'json' => '{"policy":{"phases":{"hot":{"actions":{}}}}}',
+    ],
+    'singleWriteRetry' => [
+        'json' => '{"maxAttempts":5,"initialBackoffMs":50,"maxBackoffMs":1500,"backoffMultiplier":2.0,"jitterMs":20}',
+    ],
+],
+```
+
+File path override example:
+
+```php
+'definitions' => [
+    'settings' => [
+        'path' => base_path('infra/elasticsearch/settings.json'),
+    ],
+    'mappings' => [
+        'path' => base_path('infra/elasticsearch/mappings.json'),
+    ],
+    'lifecyclePolicy' => [
+        'path' => base_path('infra/elasticsearch/lifecycle.json'),
+    ],
+    'singleWriteRetry' => [
+        'path' => base_path('infra/elasticsearch/retry.json'),
+    ],
+],
+```
+
+### Storage Mode Behavior
+
+- `index` mode: setup creates index + write alias.
+- `data_stream` mode: setup creates/updates template and optional ILM policy; Elasticsearch auto-creates the data stream on first write.
+
+Note: in `data_stream` mode, the driver auto-populates `@timestamp` if missing.
+
+### Single-Write Retries
+
+Single document writes use retries with exponential backoff for transient failures (`408`, `429`, `5xx`, node-unavailable).
+
+Retry timing values are resolved from `definitions.singleWriteRetry` (inline JSON, file path, or package default), while `singleWriteRetry.enabled` controls whether retries are active.
+
+- `maxAttempts`: total attempts, including the first call
+- `initialBackoffMs`: delay before first retry
+- `backoffMultiplier`: exponential factor per retry
+- `maxBackoffMs`: upper bound for delay
+- `jitterMs`: random `+/-` jitter to avoid synchronized retry spikes
+
+In `data_stream` mode, `op_type=create` conflicts (`409`) are treated as success to keep retries idempotent.
+
+## Setup Command
+
+Run once after configuration changes:
+
+```bash
+php artisan es-audit-log:setup
+```
+
+## Lifecycle Policy Example
+
+If you want the package to create/update an ILM policy, set `lifecyclePolicyName` and provide the policy through `definitions.lifecyclePolicy` (JSON or file path):
+
+```php
+'dataStream' => [
+    'lifecyclePolicyName' => 'audits-hot-delete',
+],
+'definitions' => [
+    'lifecyclePolicy' => [
+        'path' => base_path('infra/elasticsearch/lifecycle.json'),
+    ],
+],
+```
+
+Lifecycle definitions are validated at boot and must contain `policy.phases` as a non-empty object.
 
 ## Usage
 
-The following structure ensures to store the audits in Elasticsearch:
+Add `OwenIt\Auditing\Auditable` to your model as usual.
 
-```
-<?php
-namespace App\Models;
+To read Elasticsearch audit logs from your model:
 
-use Illuminate\Database\Eloquent\Model;
-use OwenIt\Auditing\Auditable;
-use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
+- `$model->audit_log`
+- `$model->elasticsearchAuditLog($page, $pageSize, $sort)`
 
-class SomeModel extends Model implements AuditableContract
-{
-    use Auditable;
-    // ...
-}
-```
+These methods are provided by [`ElasticSearchAuditable`](src/Traits/ElasticSearchAuditable.php).
 
-And provides the following ways to retrieve the logs related to the given model:
-  
-`$someModel->audit_log`
-  
-`$someModel->elasticsearchAuditLog()`
+## Queue Support
 
-Located in the `ElasticsearchAuditable` trait.
-```
-trait ElasticSearchAuditable
-{
-    /**
-     * @return Collection<int, mixed>
-     */
-    public function elasticsearchAuditLog(int $page = 1, int $pageSize = 10, string $sort = 'desc'): Collection
-    {
-        /** @var ElasticsearchAuditService */
-        $elasticsearchAuditService = resolve(ElasticsearchAuditService::class);
-        $result                    = $elasticsearchAuditService->searchAuditDocument(
-            model: $this,
-            pageSize: $pageSize,
-            from: --$page * $pageSize,
-            sort: $sort,
-        );
+If `drivers.queue.enabled` is `true`, audit documents are queued and indexed asynchronously.
 
-        return collect($result->asArray());
-    }
+## Testing
 
-    /**
-     * @return Collection<int, mixed>
-     */
-    public function getAuditLogAttribute(): Collection
-    {
-        return $this->elasticsearchAuditLog();
-    }
-}
+```bash
+composer test
+composer analyse
 ```
 
-## Queue:
-When the queue configuration is set, the driver will dispatch a job to index each document.
+Integration tests (against real Elasticsearch):
 
-## Contribution
+```bash
+AUDIT_RUN_INTEGRATION_TESTS=true AUDIT_INTEGRATION_HOST=http://localhost:9200 composer test-integration
+```
 
-Pull requests has  to be opened against the `master` branch.
+## Contributing
+
+Open pull requests against the `master` branch.

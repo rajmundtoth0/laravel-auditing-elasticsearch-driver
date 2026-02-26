@@ -2,61 +2,101 @@ name: Build
 
 on:
   push:
-    branches: [ "master" ]
+    branches: ["master"]
   pull_request:
-    branches: [ "master" ]
+    branches: ["master"]
 
 permissions:
   contents: read
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        php: ["8.2", "8.3", "8.4"]
+        php: ["8.2", "8.3", "8.4", "8.5"]
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Validate composer.json and composer.lock
-      run: composer validate --strict
+      - name: Validate composer.json and composer.lock
+        run: composer validate --strict
 
-    - name: Setup PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: ${{ matrix.php }}
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Cache Composer packages
-      id: composer-cache
-      uses: actions/cache@v3
-      with:
-        path: vendor
-        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-php-
+      - name: Cache Composer packages
+        id: composer-cache
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-
 
-    - name: Install dependencies
-      run: composer install --prefer-dist --no-progress
-    - name: Run PHP-CS Fixer
-      run: |
-        if [ ${{ matrix.php }} == '8.4' ]; then
-          PHP_CS_FIXER_IGNORE_ENV=1 composer cs-ci
-        else
-          composer cs-ci
-        fi
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress
+      - name: Run PHP-CS Fixer
+        run: |
+          if [ ${{ matrix.php }} == '8.4' ]; then
+            PHP_CS_FIXER_IGNORE_ENV=1 composer cs-ci
+          else
+            composer cs-ci
+          fi
 
-    - name: Run PHPStan
-      run: composer analyse
+      - name: Run PHPStan
+        run: composer analyse
 
-    - name: Run tests
-      run: composer test-coverage-ci
+      - name: Run tests
+        run: composer test-coverage-ci
 
-    - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v4.0.1
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        files: ./coverage.xml
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4.0.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
+
+  integration:
+    runs-on: ubuntu-latest
+    services:
+      elasticsearch:
+        image: docker.elastic.co/elasticsearch/elasticsearch:8.16.4
+        env:
+          discovery.type: single-node
+          xpack.security.enabled: "false"
+          ES_JAVA_OPTS: -Xms512m -Xmx512m
+        ports:
+          - 9200:9200
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: Wait for Elasticsearch
+        run: |
+          for i in {1..60}; do
+            if curl -s http://localhost:9200 >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Elasticsearch did not become ready in time"
+          exit 1
+
+      - name: Run integration tests
+        env:
+          AUDIT_RUN_INTEGRATION_TESTS: "true"
+          AUDIT_INTEGRATION_HOST: http://localhost:9200
+        run: composer test-integration

@@ -6,9 +6,12 @@ use Exception;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Queue;
+use OwenIt\Auditing\Models\Audit;
 use OwenIt\Auditing\Resolvers\UserResolver;
-use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\MockObject\MockObject;
+use rajmundtoth0\AuditDriver\Client\ElasticsearchClient;
 use rajmundtoth0\AuditDriver\Jobs\IndexAuditDocumentJob;
+use rajmundtoth0\AuditDriver\Models\DocumentModel;
 use rajmundtoth0\AuditDriver\Tests\Model\User;
 use rajmundtoth0\AuditDriver\Tests\TestCase;
 
@@ -20,15 +23,26 @@ class ElasticsearchAuditServiceTest extends TestCase
     /**
      * @throws Exception
      */
-    #[DataProvider('provideCreateIndexCases')]
-    public function testCreateIndex(int $firstStatus): void
+    public function testCreateIndexCreatesAndAliasesWhenMissing(): void
     {
-        $service = $this->getService(
-            statuses: [$firstStatus, 200, 200],
-            bodies: [],
-            shouldBind: true,
-            shouldThrowException: false,
-        );
+        $service = $this->getServiceWithMockedClient(function (ElasticsearchClient&MockObject $client): void {
+            $client->expects($this->once())
+                ->method('isIndexExists')
+                ->with('mocked')
+                ->willReturn(false);
+            $client->expects($this->once())
+                ->method('createIndex')
+                ->with(
+                    'mocked',
+                    $this->callback(fn(array $settings): bool => [] !== $settings),
+                    $this->callback(fn(array $mappings): bool => [] !== $mappings),
+                )
+                ->willReturn($this->getElasticResponse());
+            $client->expects($this->once())
+                ->method('updateAliases')
+                ->with('mocked')
+                ->willReturn($this->getElasticResponse());
+        });
 
         $result = $service->createIndex();
 
@@ -38,68 +52,270 @@ class ElasticsearchAuditServiceTest extends TestCase
     /**
      * @throws Exception
      */
-    #[DataProvider('provideDeleteIndexCases')]
-    public function testDeleteIndex(bool $isIndexExists, bool $expectedResult): void
+    public function testCreateIndexSkipsWhenIndexExists(): void
     {
-        $service = $this->getService(
-            statuses: [200, 200],
-            bodies: [],
-            shouldBind: true,
-        );
-        if ($isIndexExists) {
-            $service->createIndex();
-        }
+        $service = $this->getServiceWithMockedClient(function (ElasticsearchClient&MockObject $client): void {
+            $client->expects($this->once())
+                ->method('isIndexExists')
+                ->with('mocked')
+                ->willReturn(true);
+            $client->expects($this->never())->method('createIndex');
+            $client->expects($this->never())->method('updateAliases');
+        });
 
-        $result = $service->deleteIndex();
+        $result = $service->createIndex();
 
-        static::assertSame($expectedResult, $result);
+        static::assertSame('mocked', $result);
     }
 
     /**
      * @throws Exception
      */
-    #[DataProvider('provideIndexDocumentCases')]
-    public function testIndexDocument(bool $shouldReturnResult, ?bool $expectedResult, bool $shouldUseQueue): void
+    public function testCreateDataStreamTemplateInDataStreamMode(): void
     {
-        Config::set('audit.drivers.queue.enabled', $shouldUseQueue);
+        Config::set('audit.drivers.elastic.storageMode', 'data_stream');
+        $service = $this->getServiceWithMockedClient(function (ElasticsearchClient&MockObject $client): void {
+            $client->expects($this->never())->method('isIndexExists');
+            $client->expects($this->never())->method('createIndex');
+            $client->expects($this->never())->method('updateAliases');
+            $client->expects($this->never())->method('putLifecyclePolicy');
+            $client->expects($this->once())
+                ->method('createDataStreamTemplate')
+                ->with(
+                    'mocked_template',
+                    'mocked*',
+                    100,
+                    $this->callback(fn(array $settings): bool => [] !== $settings),
+                    $this->callback(fn(array $mappings): bool => [] !== $mappings),
+                    '',
+                    '',
+                )
+                ->willReturn($this->getElasticResponse());
+        });
+
+        $result = $service->createIndex();
+
+        static::assertSame('mocked', $result);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testCreateDataStreamWithLifecyclePolicy(): void
+    {
+        Config::set('audit.drivers.elastic.storageMode', 'data_stream');
+        Config::set('audit.drivers.elastic.dataStream.lifecyclePolicyName', 'audits-hot-delete');
+        $lifecyclePolicy = [
+            'policy' => [
+                'phases' => [
+                    'hot' => [
+                        'actions' => [],
+                    ],
+                ],
+            ],
+        ];
+        Config::set(
+            'audit.drivers.elastic.definitions.lifecyclePolicy.json',
+            json_encode($lifecyclePolicy, JSON_THROW_ON_ERROR),
+        );
+        $service = $this->getServiceWithMockedClient(function (ElasticsearchClient&MockObject $client) use ($lifecyclePolicy): void {
+            $client->expects($this->once())
+                ->method('putLifecyclePolicy')
+                ->with([
+                    'policy' => 'audits-hot-delete',
+                    'body'   => $lifecyclePolicy,
+                ])
+                ->willReturn($this->getElasticResponse());
+            $client->expects($this->once())
+                ->method('createDataStreamTemplate')
+                ->with(
+                    'mocked_template',
+                    'mocked*',
+                    100,
+                    $this->callback(fn(array $settings): bool => [] !== $settings),
+                    $this->callback(fn(array $mappings): bool => [] !== $mappings),
+                    'audits-hot-delete',
+                    '',
+                )
+                ->willReturn($this->getElasticResponse());
+        });
+
+        $result = $service->createIndex();
+
+        static::assertSame('mocked', $result);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testDeleteIndexDelegatesInIndexMode(): void
+    {
+        $service = $this->getServiceWithMockedClient(function (ElasticsearchClient&MockObject $client): void {
+            $client->expects($this->once())
+                ->method('deleteIndex')
+                ->with('mocked')
+                ->willReturn(true);
+            $client->expects($this->never())->method('deleteDataStream');
+        });
+
+        static::assertTrue($service->deleteIndex());
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testDeleteIndexDelegatesInDataStreamMode(): void
+    {
+        Config::set('audit.drivers.elastic.storageMode', 'data_stream');
+        $service = $this->getServiceWithMockedClient(function (ElasticsearchClient&MockObject $client): void {
+            $client->expects($this->once())
+                ->method('deleteDataStream')
+                ->with('mocked')
+                ->willReturn(true);
+            $client->expects($this->never())->method('deleteIndex');
+        });
+
+        static::assertTrue($service->deleteIndex());
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testIndexDocumentIndexesImmediatelyWhenQueueDisabled(): void
+    {
+        /** @var array<string, mixed> $user */
+        $user = $this->getUser()->toArray();
+        $service = $this->getServiceWithMockedClient(function (ElasticsearchClient&MockObject $client): void {
+            $client->expects($this->once())
+                ->method('index')
+                ->with(
+                    $this->callback(function (DocumentModel $document): bool {
+                        $rawDocument = $document->toArray();
+
+                        return 'mocked' === $rawDocument['index']
+                            && is_array($rawDocument['body'])
+                            && array_key_exists('created_at', $rawDocument['body']);
+                    }),
+                    true,
+                    false,
+                )
+                ->willReturn(true);
+        });
+
+        $result = $service->indexDocument($user, true);
+
+        static::assertTrue($result);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testIndexDocumentAddsTimestampInDataStreamMode(): void
+    {
+        Config::set('audit.drivers.elastic.storageMode', 'data_stream');
+        $service = $this->getServiceWithMockedClient(function (ElasticsearchClient&MockObject $client): void {
+            $client->expects($this->once())
+                ->method('index')
+                ->with(
+                    $this->callback(function (DocumentModel $document): bool {
+                        $rawDocument = $document->toArray();
+                        assert(is_array($rawDocument['body']));
+
+                        return array_key_exists('@timestamp', $rawDocument['body']);
+                    }),
+                    true,
+                    true,
+                )
+                ->willReturn(true);
+        });
+
+        $result = $service->indexDocument([
+            'auditable_id'   => 1001,
+            'auditable_type' => 'user',
+            'event'          => 'updated',
+        ], true);
+
+        static::assertTrue($result);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testIndexDocumentDispatchesQueueWhenEnabled(): void
+    {
+        Config::set('audit.drivers.queue.enabled', true);
         Queue::fake();
-        /** @var array<string, mixed> */
-        $user    = $this->getUser()->toArray();
-        $service = $this->getService(
-            statuses: [200],
-            bodies: [],
-            shouldBind: true,
-        );
-        $result = $service->indexDocument(
-            model: $user,
-            shouldReturnResult: $shouldReturnResult,
-        );
+        $service = $this->getServiceWithMockedClient(function (ElasticsearchClient&MockObject $client): void {
+            $client->expects($this->never())->method('index');
+        });
 
-        if ($shouldUseQueue) {
-            Queue::assertPushed(IndexAuditDocumentJob::class,
-                fn(IndexAuditDocumentJob $job): bool => 'audits' === $job->queue
+        $result = $service->indexDocument($this->getUser()->toArray(), true);
+
+        static::assertNull($result);
+        Queue::assertPushed(IndexAuditDocumentJob::class,
+            fn(IndexAuditDocumentJob $job): bool => 'audits' === $job->queue
                 && 'redis' === $job->connection
-            );
-        }
-
-        static::assertSame($expectedResult, $result);
+        );
     }
 
     /**
      * @throws Exception
      */
-    public function testSearchDocument(): void
+    public function testSearchAuditDocumentBuildsExpectedQuery(): void
     {
         $user = $this->getUser();
-        /** @var array<string, mixed> */
+        $user->setAttribute('id', 1001);
+        /** @var array<string, mixed> $userArray */
         $userArray = $user->toArray();
-        $service   = $this->getService(
-            statuses: [200, 200, 200],
-            bodies: [null, null, $userArray],
-            shouldBind: true,
-        );
-        $service->indexDocument($userArray);
-        $service->indexDocument(['name' => 'Not John Doe']);
+        $service = $this->getServiceWithMockedClient(function (ElasticsearchClient&MockObject $client) use ($user, $userArray): void {
+            $client->expects($this->once())
+                ->method('search')
+                ->with($this->callback(function (array $params) use ($user): bool {
+                    if ('mocked' !== ($params['index'] ?? null)) {
+                        return false;
+                    }
+                    $body = $params['body'] ?? null;
+                    if (!is_array($body)) {
+                        return false;
+                    }
+                    $query = $body['query'] ?? null;
+                    if (!is_array($query)) {
+                        return false;
+                    }
+                    $bool = $query['bool'] ?? null;
+                    if (!is_array($bool)) {
+                        return false;
+                    }
+                    $must = $bool['must'] ?? null;
+                    if (!is_array($must) || !array_key_exists(0, $must) || !array_key_exists(1, $must)) {
+                        return false;
+                    }
+                    $firstMust = $must[0];
+                    $secondMust = $must[1];
+                    if (!is_array($firstMust) || !is_array($secondMust)) {
+                        return false;
+                    }
+                    $firstTerm = $firstMust['term'] ?? null;
+                    $secondTerm = $secondMust['term'] ?? null;
+                    if (!is_array($firstTerm) || !is_array($secondTerm)) {
+                        return false;
+                    }
+                    $sort = $body['sort'] ?? null;
+                    if (!is_array($sort)) {
+                        return false;
+                    }
+                    $createdAtSort = $sort['created_at'] ?? null;
+                    if (!is_array($createdAtSort)) {
+                        return false;
+                    }
+
+                    return ($firstTerm['auditable_id'] ?? null) === $user->id
+                        && ($secondTerm['auditable_type'] ?? null) === $user->getMorphClass()
+                        && 'created_at' === array_key_first($sort)
+                        && 'desc' === ($createdAtSort['order'] ?? null);
+                }))
+                ->willReturn($this->getElasticResponse(body: $userArray));
+        });
 
         $result = $service->searchAuditDocument($user);
 
@@ -110,123 +326,108 @@ class ElasticsearchAuditServiceTest extends TestCase
     /**
      * @throws Exception
      */
-    public function testSearch(): void
+    public function testSearchDelegatesToClient(): void
     {
-        $user = $this->getUser();
-        /** @var array<string, mixed> */
-        $userArray = $user->toArray();
-        $service   = $this->getService(
-            statuses: [200, 200, 200],
-            bodies: [null, null, $userArray],
-            shouldBind: true,
-        );
-        $service->indexDocument($userArray);
-        $service->indexDocument([
-            'id'   => 314159,
-            'name' => 'Not John Doe',
-        ]);
-
         $query = [
-            'bool' => [
-                'must' => [
-                    [
-                        'term' => [
-                            'auditable_id' => $user->id,
-                        ],
+            'index' => 'mocked',
+            'body'  => [
+                'query' => [
+                    'term' => [
+                        'auditable_id' => 1001,
                     ],
                 ],
             ],
         ];
-        $result = $service
-            ->search(query: $query);
+        $service = $this->getServiceWithMockedClient(function (ElasticsearchClient&MockObject $client) use ($query): void {
+            $client->expects($this->once())
+                ->method('search')
+                ->with($query)
+                ->willReturn($this->getElasticResponse(body: ['hits' => []]));
+        });
+
+        $result = $service->search($query);
 
         static::assertTrue($result->asBool());
-        static::assertSame($userArray, $result->asArray());
     }
 
     /**
      * @throws Exception
      */
-    public function testCount(): void
+    public function testCountDelegatesToClient(): void
     {
-        $user = $this->getUser();
-        /** @var array<string, mixed> */
-        $userArray = $user->toArray();
-        $service   = $this->getService(
-            statuses: [200, 200, 200],
-            bodies: [null, null, ['count' => 1]],
-            shouldBind: true,
-        );
-        $service->indexDocument($userArray);
-        $service->indexDocument([
-            'id'   => 314159,
-            'name' => 'Not John Doe',
-        ]);
-
         $query = [
-            'bool' => [
-                'must' => [
-                    [
-                        'term' => [
-                            'auditable_id' => $user->id,
-                        ],
+            'index' => 'mocked',
+            'body'  => [
+                'query' => [
+                    'term' => [
+                        'auditable_id' => 1001,
                     ],
                 ],
             ],
         ];
-        $result = $service
-            ->count(query: $query);
+        $service = $this->getServiceWithMockedClient(function (ElasticsearchClient&MockObject $client) use ($query): void {
+            $client->expects($this->once())
+                ->method('count')
+                ->with($query)
+                ->willReturn($this->getElasticResponse(body: ['count' => 1]));
+        });
 
-        $count = $result->asObject();
-        assert(property_exists($count, 'count'));
+        $result = $service->count($query)->asObject();
+        assert(property_exists($result, 'count'));
 
-        static::assertTrue($result->asBool());
-        static::assertSame(1, $count->count);
+        static::assertSame(1, $result->count);
     }
 
     /**
      * @throws Exception
      */
-    public function testDeleteDocument(): void
+    public function testDeleteAuditDocumentDelegatesToClient(): void
     {
+        $service = $this->getServiceWithMockedClient(function (ElasticsearchClient&MockObject $client): void {
+            $client->expects($this->once())
+                ->method('deleteDocument')
+                ->with('mocked', 1001, true)
+                ->willReturn(true);
+        });
+
+        static::assertTrue($service->deleteAuditDocument(1001, true));
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testPruneReturnsFalseWhenThresholdIsZero(): void
+    {
+        Config::set('audit.threshold', 0);
+        $service = $this->getServiceWithMockedClient(function (ElasticsearchClient&MockObject $client): void {
+            $client->expects($this->never())->method('deleteDocument');
+        });
+
+        static::assertFalse($service->prune($this->getUser(), true));
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testPruneDeletesDocumentWhenThresholdIsPositive(): void
+    {
+        Config::set('audit.threshold', 5);
         $user = $this->getUser();
-        /** @var array<string, mixed> */
-        $userArray = $user->toArray();
-        $service   = $this->getService(
-            statuses: [200, 200, 200],
-            bodies: [],
-            shouldBind: true,
-        );
+        $user->setAttribute('id', 1001);
+        $service = $this->getServiceWithMockedClient(function (ElasticsearchClient&MockObject $client): void {
+            $client->expects($this->once())
+                ->method('deleteDocument')
+                ->with('mocked', 1001, true)
+                ->willReturn(true);
+        });
 
-        $service->indexDocument($userArray);
-        $service->indexDocument(['name' => 'Not John Doe']);
-
-        $result = $service->deleteAuditDocument($user->id, true);
-
-        static::assertTrue($result);
+        static::assertTrue($service->prune($user, true));
     }
 
     /**
      * @throws Exception
      */
-    #[DataProvider('providePruneDocumentCases')]
-    public function testPruneDocument(int $threshold, bool $expectedResult): void
-    {
-        Config::set('audit.threshold', $threshold);
-        $service = $this->getService(
-            statuses: [200],
-            bodies: [],
-            shouldBind: true,
-        );
-        $result = $service->prune($this->getUser(), true);
-
-        static::assertSame($expectedResult, $result);
-    }
-
-    /**
-     * @throws Exception
-     */
-    public function testAudit(): void
+    public function testAuditIndexesDocumentAndReturnsImplementation(): void
     {
         Config::set('audit.user.resolver', UserResolver::class);
         $user = User::create([
@@ -234,110 +435,36 @@ class ElasticsearchAuditServiceTest extends TestCase
             'email'    => 'test@test.test',
             'password' => Hash::make('a_very_strong_password'),
         ]);
-        $service = $this->getService(
-            statuses: [200, 200],
-            bodies: [null, $user->toArray()],
-            shouldBind: true,
-        );
+        $service = $this->getServiceWithMockedClient(function (ElasticsearchClient&MockObject $client): void {
+            $client->expects($this->once())
+                ->method('index')
+                ->with(
+                    $this->isInstanceOf(DocumentModel::class),
+                    false,
+                    false,
+                )
+                ->willReturn(false);
+        });
 
         $user->isCustomEvent = true;
         $user->setAuditEvent('saving');
+
         $result = $service->audit($user);
 
-        $searchResult = $service->searchAuditDocument($user);
-        static::assertTrue($searchResult->asBool());
-        static::assertSame($searchResult->asArray(), $user->toArray());
+        static::assertInstanceOf(Audit::class, $result);
     }
 
     /**
      * @throws Exception
      */
-    public function testIsAsync(): void
+    public function testIsAsyncDelegatesToClient(): void
     {
-        $service = $this->getService(
-            statuses: [200],
-            bodies: [],
-            shouldBind: true,
-        );
+        $service = $this->getServiceWithMockedClient(function (ElasticsearchClient&MockObject $client): void {
+            $client->expects($this->once())
+                ->method('isAsync')
+                ->willReturn(false);
+        });
 
         static::assertFalse($service->isAsync());
-    }
-
-    /**
-     * @return array<int, array<string, int>>
-     */
-    public static function provideCreateIndexCases(): iterable
-    {
-        return [
-            [
-                'firstStatus' => 404,
-            ],
-            [
-                'firstStatus' => 200,
-            ],
-        ];
-    }
-
-    /**
-     * @return array<int, array<string, null|bool>>
-     */
-    public static function provideIndexDocumentCases(): iterable
-    {
-        return [
-            [
-                'shouldReturnResult' => false,
-                'expectedResult'     => false,
-                'shouldUseQueue'     => false,
-            ],
-            [
-                'shouldReturnResult' => true,
-                'expectedResult'     => true,
-                'shouldUseQueue'     => false,
-            ],
-            [
-                'shouldReturnResult' => false,
-                'expectedResult'     => null,
-                'shouldUseQueue'     => true,
-            ],
-            [
-                'shouldReturnResult' => true,
-                'expectedResult'     => null,
-                'shouldUseQueue'     => true,
-            ],
-        ];
-    }
-
-    /**
-     * @return array<int, array<string, null|bool>>
-     */
-    public static function provideDeleteIndexCases(): iterable
-    {
-        return [
-            [
-                'isIndexExists'  => false,
-                'expectedResult' => true,
-            ],
-            [
-                'isIndexExists'  => true,
-                'expectedResult' => true,
-            ],
-        ];
-    }
-
-    /**
-     * @return array<int, array<string, bool|int>>
-     */
-    public static function providePruneDocumentCases(): iterable
-    {
-        return [
-            [
-                'threshold'      => 0,
-                'expectedResult' => false,
-            ],
-            [
-                'threshold'      => 5,
-                'expectedResult' => true,
-            ],
-        ];
     }
 }

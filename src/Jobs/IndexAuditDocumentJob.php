@@ -6,6 +6,7 @@ use Elastic\Elasticsearch\Exception\ClientResponseException;
 use Elastic\Elasticsearch\Exception\MissingParameterException;
 use Elastic\Elasticsearch\Exception\ServerResponseException;
 use Elastic\Transport\Exception\NoNodeAvailableException;
+use InvalidArgumentException;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
@@ -28,6 +29,7 @@ class IndexAuditDocumentJob implements ShouldQueue
     /**
      * @throws AuditDriverException
      * @throws ClientResponseException
+     * @throws InvalidArgumentException
      * @throws NoNodeAvailableException
      * @throws MissingParameterException
      * @throws ServerResponseException

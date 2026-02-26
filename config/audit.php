@@ -122,14 +122,41 @@ return [
             'hosts' => [
                 env('AUDIT_HOST', 'http://0.0.0.0:9200')
             ],
-            'userName'     => env('ELASTIC_AUDIT_USER', 'elastic'),
-            'password'     => env('ELASTIC_AUDIT_PASSWORD', 'a_very_strong_password'),
-            'useBasicAuth' => (bool) env('AUDIT_BASIC_AUTH', true),
-            'useCaCert'    => (bool) env('AUDIT_USE_CERT', true),
-            'certPath'     => env('AUDIT_CERT_PATH', ''),
-            'index'        => env('AUDIT_INDEX', 'laravel_auditing'),
-            'type'         => env('AUDIT_TYPE', 'audits'),
-            'dateFormat'   => env('AUDIT_DATE_FORMAT', 'yyyy-MM-dd HH:mm:ss'),
+            'userName'      => env('ELASTIC_AUDIT_USER', 'elastic'),
+            'password'      => env('ELASTIC_AUDIT_PASSWORD', 'a_very_strong_password'),
+            'useBasicAuth'  => (bool) env('AUDIT_BASIC_AUTH', true),
+            'useCaCert'     => (bool) env('AUDIT_USE_CERT', true),
+            'certPath'      => env('AUDIT_CERT_PATH', ''),
+            'index'         => env('AUDIT_INDEX', 'laravel_auditing'),
+            'storageMode'   => env('AUDIT_STORAGE_MODE', 'index'), // index|data_stream
+            'definitions'   => [
+                'settings' => [
+                    'path' => env('AUDIT_SETTINGS_PATH', ''),
+                    'json' => env('AUDIT_SETTINGS_JSON', ''),
+                ],
+                'mappings' => [
+                    'path' => env('AUDIT_MAPPINGS_PATH', ''),
+                    'json' => env('AUDIT_MAPPINGS_JSON', ''),
+                ],
+                'lifecyclePolicy' => [
+                    'path' => env('AUDIT_LIFECYCLE_POLICY_PATH', ''),
+                    'json' => env('AUDIT_LIFECYCLE_POLICY_JSON', ''),
+                ],
+                'singleWriteRetry' => [
+                    'path' => env('AUDIT_SINGLE_WRITE_RETRY_PATH', ''),
+                    'json' => env('AUDIT_SINGLE_WRITE_RETRY_JSON', ''),
+                ],
+            ],
+            'dataStream'    => [
+                'templateName'        => env('AUDIT_DATA_STREAM_TEMPLATE_NAME', ''),
+                'indexPattern'        => env('AUDIT_DATA_STREAM_INDEX_PATTERN', ''),
+                'templatePriority'    => (int) env('AUDIT_DATA_STREAM_TEMPLATE_PRIORITY', 100),
+                'lifecyclePolicyName' => env('AUDIT_DATA_STREAM_LIFECYCLE_POLICY', ''),
+                'pipeline'            => env('AUDIT_DATA_STREAM_PIPELINE', ''),
+            ],
+            'singleWriteRetry' => [
+                'enabled'           => (bool) env('AUDIT_SINGLE_WRITE_RETRY_ENABLED', true),
+            ],
         ],
         'queue' => [
             'enabled'    => (bool) env('AUDIT_QUEUE_ENABLED', false),

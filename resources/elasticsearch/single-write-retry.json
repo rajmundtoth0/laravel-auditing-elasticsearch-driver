@@ -1,0 +1,7 @@
+{
+  "maxAttempts": 3,
+  "initialBackoffMs": 100,
+  "maxBackoffMs": 2000,
+  "backoffMultiplier": 2.0,
+  "jitterMs": 25
+}

@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use Exception;
+use PHPUnit\Framework\MockObject\MockObject;
+use rajmundtoth0\AuditDriver\Client\ElasticsearchClient;
 use rajmundtoth0\AuditDriver\Tests\TestCase;
 
 /**
@@ -28,9 +30,11 @@ class ElasticSearchAuditableTest extends TestCase
                 ],
             ],
         ];
-        $this->getService(
-            statuses: [200],
-            bodies: [$body],
+        $this->getServiceWithMockedClient(function (ElasticsearchClient&MockObject $client) use ($body): void {
+            $client->expects($this->once())
+                ->method('search')
+                ->willReturn($this->getElasticResponse(body: $body));
+        },
             shouldBind: true,
         );
 
