@@ -190,7 +190,7 @@ class ElasticsearchAuditServiceTest extends TestCase
     public function testIndexDocumentIndexesImmediatelyWhenQueueDisabled(): void
     {
         /** @var array<string, mixed> $user */
-        $user = $this->getUser()->toArray();
+        $user    = $this->getUser()->toArray();
         $service = $this->getServiceWithMockedClient(function (ElasticsearchClient&MockObject $client): void {
             $client->expects($this->once())
                 ->method('index')
@@ -273,7 +273,7 @@ class ElasticsearchAuditServiceTest extends TestCase
         $user->setAttribute('id', 1001);
         /** @var array<string, mixed> $userArray */
         $userArray = $user->toArray();
-        $service = $this->getServiceWithMockedClient(function (ElasticsearchClient&MockObject $client) use ($user, $userArray): void {
+        $service   = $this->getServiceWithMockedClient(function (ElasticsearchClient&MockObject $client) use ($user, $userArray): void {
             $client->expects($this->once())
                 ->method('search')
                 ->with($this->callback(function (array $params) use ($user): bool {
@@ -296,12 +296,12 @@ class ElasticsearchAuditServiceTest extends TestCase
                     if (!is_array($must) || !array_key_exists(0, $must) || !array_key_exists(1, $must)) {
                         return false;
                     }
-                    $firstMust = $must[0];
+                    $firstMust  = $must[0];
                     $secondMust = $must[1];
                     if (!is_array($firstMust) || !is_array($secondMust)) {
                         return false;
                     }
-                    $firstTerm = $firstMust['term'] ?? null;
+                    $firstTerm  = $firstMust['term'] ?? null;
                     $secondTerm = $secondMust['term'] ?? null;
                     if (!is_array($firstTerm) || !is_array($secondTerm)) {
                         return false;

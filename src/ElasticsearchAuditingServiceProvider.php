@@ -13,9 +13,7 @@ class ElasticsearchAuditingServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->app->singleton(AuditServiceConfig::class, function (Container $app): AuditServiceConfig {
-            return $app->make(AuditServiceConfigResolver::class)->resolve();
-        });
+        $this->app->singleton(AuditServiceConfig::class, fn (Container $app): AuditServiceConfig => $app->make(AuditServiceConfigResolver::class)->resolve());
 
         $this->app->singleton(ElasticsearchAuditService::class);
         if ($this->app->runningInConsole()) {
