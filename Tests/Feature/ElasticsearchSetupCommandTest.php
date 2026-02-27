@@ -3,6 +3,7 @@
 namespace rajmundtoth0\AuditDriver\Tests\Feature;
 
 use Exception;
+use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Testing\PendingCommand;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -102,6 +103,7 @@ class ElasticsearchSetupCommandTest extends TestCase
             ->method('setClient')
             ->willReturnSelf();
         $initialClientMock->expects($this->never())->method('createDataStreamTemplate');
+        assert($this->app instanceof Application);
         $this->app->instance(ElasticsearchClient::class, $initialClientMock);
         resolve(ElasticsearchAuditService::class);
 
@@ -142,6 +144,7 @@ class ElasticsearchSetupCommandTest extends TestCase
             ->method('setClient')
             ->willReturnSelf();
         $configureMock($clientMock);
+        assert($this->app instanceof Application);
         $this->app->instance(ElasticsearchClient::class, $clientMock);
     }
 }
