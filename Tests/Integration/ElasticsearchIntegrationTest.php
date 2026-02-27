@@ -118,7 +118,8 @@ class ElasticsearchIntegrationTest extends TestCase
      */
     private function waitForCount(ElasticsearchAuditService $service, array $query): int
     {
-        $maxAttempts = 10;
+        // Default settings use refresh_interval=5s; allow enough time for refresh in CI.
+        $maxAttempts = 40;
         $sleepMicros = 300_000;
 
         for ($attempt = 0; $attempt < $maxAttempts; $attempt++) {
