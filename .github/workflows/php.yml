@@ -40,6 +40,7 @@ jobs:
 
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress
+
       - name: Run PHP-CS Fixer
         run: |
           if [ ${{ matrix.php }} == '8.4' ]; then
@@ -63,8 +64,14 @@ jobs:
   integration:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        es: ["8.19.12", "9.3.1"]
+        include:
+          - es: "8.19.12"
+            es_client: "^8.0"
+          - es: "9.3.1"
+            es_client: "^9.0"
+
     services:
       elasticsearch:
         image: docker.elastic.co/elasticsearch/elasticsearch:${{ matrix.es }}
@@ -74,6 +81,7 @@ jobs:
           ES_JAVA_OPTS: -Xms512m -Xmx512m
         ports:
           - 9200:9200
+
     steps:
       - uses: actions/checkout@v4
 
@@ -84,8 +92,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install dependencies
-        run: composer install --prefer-dist --no-progress
+      - name: Install dependencies (pin Elasticsearch PHP client)
+        run: |
+          composer require --no-interaction --no-update elasticsearch/elasticsearch:${{ matrix.es_client }}
+          composer update elasticsearch/elasticsearch --with-all-dependencies --prefer-dist --no-progress --no-interaction
+
+      - name: Show installed Elasticsearch PHP client
+        run: composer show elasticsearch/elasticsearch
 
       - name: Wait for Elasticsearch
         run: |
