@@ -110,8 +110,8 @@ namespace rajmundtoth0\AuditDriver\Types;
  *     human?: bool,
  *     error_trace?: bool,
  *     source?: string,
- *     filter_path?: array<string>|string,
- *     body?: array<mixed>|string,
+ *     filter_path?: string|array<string>,
+ *     body: string|array<mixed>,
  * }
  *
  * @phpstan-type SearchParams array{
