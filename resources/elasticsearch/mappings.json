@@ -1,8 +1,7 @@
 {
   "dynamic_date_formats": [
     "strict_date_optional_time",
-    "yyyy-MM-dd HH:mm:ss",
-    "epoch_millis"
+    "yyyy-MM-dd HH:mm:ss"
   ],
   "properties": {
     "event": {
