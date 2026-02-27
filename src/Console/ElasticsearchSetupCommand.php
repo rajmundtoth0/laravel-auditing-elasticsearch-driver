@@ -27,8 +27,9 @@ class ElasticsearchSetupCommand extends Command
      * @throws InvalidArgumentException
      * @throws RuntimeException
      */
-    public function handle(ElasticsearchAuditService $elasticsearchService): void
+    public function handle(): void
     {
+        $elasticsearchService = app(ElasticsearchAuditService::class);
         $elasticsearchService->createIndex();
         $this->info("Storage target: {$elasticsearchService->index} is ready!");
     }
