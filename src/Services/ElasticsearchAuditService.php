@@ -95,7 +95,7 @@ class ElasticsearchAuditService implements AuditDriver
     public function indexDocument(array $model, bool $shouldReturnResult = false): ?bool
     {
         if ($this->config->storageMode->isDataStream() && !array_key_exists('@timestamp', $model)) {
-            $model['@timestamp'] = $model['created_at'] ?? now()->utc()->toIso8601String();
+            $model['@timestamp'] = now()->utc()->toIso8601String();
         }
 
         $document = new DocumentModel(

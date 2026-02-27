@@ -1,4 +1,9 @@
 {
+  "dynamic_date_formats": [
+    "strict_date_optional_time",
+    "yyyy-MM-dd HH:mm:ss",
+    "epoch_millis"
+  ],
   "properties": {
     "event": {
       "type": "keyword"
@@ -20,7 +25,7 @@
     },
     "created_at": {
       "type": "date",
-      "format": "strict_date_optional_time||epoch_millis"
+      "format": "strict_date_optional_time||yyyy-MM-dd HH:mm:ss||epoch_millis"
     },
     "@timestamp": {
       "type": "date",
@@ -31,15 +36,15 @@
       "properties": {
         "created_at": {
           "type": "date",
-          "format": "strict_date_optional_time||epoch_millis"
+          "format": "strict_date_optional_time||yyyy-MM-dd HH:mm:ss||epoch_millis"
         },
         "updated_at": {
           "type": "date",
-          "format": "strict_date_optional_time||epoch_millis"
+          "format": "strict_date_optional_time||yyyy-MM-dd HH:mm:ss||epoch_millis"
         },
         "deleted_at": {
           "type": "date",
-          "format": "strict_date_optional_time||epoch_millis"
+          "format": "strict_date_optional_time||yyyy-MM-dd HH:mm:ss||epoch_millis"
         }
       }
     },
@@ -48,15 +53,15 @@
       "properties": {
         "created_at": {
           "type": "date",
-          "format": "strict_date_optional_time||epoch_millis"
+          "format": "strict_date_optional_time||yyyy-MM-dd HH:mm:ss||epoch_millis"
         },
         "updated_at": {
           "type": "date",
-          "format": "strict_date_optional_time||epoch_millis"
+          "format": "strict_date_optional_time||yyyy-MM-dd HH:mm:ss||epoch_millis"
         },
         "deleted_at": {
           "type": "date",
-          "format": "strict_date_optional_time||epoch_millis"
+          "format": "strict_date_optional_time||yyyy-MM-dd HH:mm:ss||epoch_millis"
         }
       }
     }

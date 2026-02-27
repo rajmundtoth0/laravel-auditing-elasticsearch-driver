@@ -124,14 +124,14 @@ return [
             'hosts' => [
                 env('AUDIT_HOST', 'http://0.0.0.0:9200')
             ],
-            'userName'      => env('ELASTIC_AUDIT_USER', 'elastic'),
-            'password'      => env('ELASTIC_AUDIT_PASSWORD', 'a_very_strong_password'),
-            'useBasicAuth'  => (bool) env('AUDIT_BASIC_AUTH', true),
-            'useCaCert'     => (bool) env('AUDIT_USE_CERT', true),
-            'certPath'      => env('AUDIT_CERT_PATH', ''),
-            'index'         => $defaultAuditIndex,
-            'storageMode'   => env('AUDIT_STORAGE_MODE', 'index'), // index|data_stream
-            'definitions'   => [
+            'userName'     => env('ELASTIC_AUDIT_USER', 'elastic'),
+            'password'     => env('ELASTIC_AUDIT_PASSWORD', 'a_very_strong_password'),
+            'useBasicAuth' => (bool) env('AUDIT_BASIC_AUTH', true),
+            'useCaCert'    => (bool) env('AUDIT_USE_CERT', true),
+            'certPath'     => env('AUDIT_CERT_PATH', ''),
+            'index'        => $defaultAuditIndex,
+            'storageMode'  => env('AUDIT_STORAGE_MODE', 'index'), // index|data_stream
+            'definitions'  => [
                 'settings' => [
                     'path' => env('AUDIT_SETTINGS_PATH', ''),
                 ],
@@ -142,11 +142,11 @@ return [
                     'path' => env('AUDIT_LIFECYCLE_POLICY_PATH', ''),
                 ],
             ],
-            'dataStream'    => [
+            'dataStream' => [
                 'templateName'        => env('AUDIT_DATA_STREAM_TEMPLATE_NAME', $defaultAuditIndex.'_template'),
                 'indexPattern'        => env('AUDIT_DATA_STREAM_INDEX_PATTERN', $defaultAuditIndex.'*'),
                 'templatePriority'    => (int) env('AUDIT_DATA_STREAM_TEMPLATE_PRIORITY', 100),
-                'lifecyclePolicyName' => env('AUDIT_DATA_STREAM_LIFECYCLE_POLICY', ''),
+                'lifecyclePolicyName' => env('AUDIT_DATA_STREAM_LIFECYCLE_POLICY', $defaultAuditIndex.'_lifecycle_policy'),
                 'pipeline'            => env('AUDIT_DATA_STREAM_PIPELINE', ''),
             ],
             'singleWriteRetry' => [
