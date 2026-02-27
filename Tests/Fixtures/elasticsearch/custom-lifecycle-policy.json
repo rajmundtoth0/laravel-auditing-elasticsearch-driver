@@ -1,0 +1,9 @@
+{
+  "policy": {
+    "phases": {
+      "hot": {
+        "actions": {}
+      }
+    }
+  }
+}
