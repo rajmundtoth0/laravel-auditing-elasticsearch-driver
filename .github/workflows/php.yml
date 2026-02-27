@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         php: ["8.2", "8.3", "8.4", "8.5"]
-        es: ["8.10", "9.1"]
+        es: ["8.19.12", "9.3.1"]
 
     steps:
       - uses: actions/checkout@v4
