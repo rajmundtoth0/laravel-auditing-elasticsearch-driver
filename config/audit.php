@@ -1,5 +1,7 @@
 <?php
 
+$defaultAuditIndex = env('AUDIT_INDEX', 'laravel_auditing');
+
 return [
 
     /*
@@ -127,35 +129,33 @@ return [
             'useBasicAuth'  => (bool) env('AUDIT_BASIC_AUTH', true),
             'useCaCert'     => (bool) env('AUDIT_USE_CERT', true),
             'certPath'      => env('AUDIT_CERT_PATH', ''),
-            'index'         => env('AUDIT_INDEX', 'laravel_auditing'),
+            'index'         => $defaultAuditIndex,
             'storageMode'   => env('AUDIT_STORAGE_MODE', 'index'), // index|data_stream
             'definitions'   => [
                 'settings' => [
                     'path' => env('AUDIT_SETTINGS_PATH', ''),
-                    'json' => env('AUDIT_SETTINGS_JSON', ''),
                 ],
                 'mappings' => [
                     'path' => env('AUDIT_MAPPINGS_PATH', ''),
-                    'json' => env('AUDIT_MAPPINGS_JSON', ''),
                 ],
                 'lifecyclePolicy' => [
                     'path' => env('AUDIT_LIFECYCLE_POLICY_PATH', ''),
-                    'json' => env('AUDIT_LIFECYCLE_POLICY_JSON', ''),
-                ],
-                'singleWriteRetry' => [
-                    'path' => env('AUDIT_SINGLE_WRITE_RETRY_PATH', ''),
-                    'json' => env('AUDIT_SINGLE_WRITE_RETRY_JSON', ''),
                 ],
             ],
             'dataStream'    => [
-                'templateName'        => env('AUDIT_DATA_STREAM_TEMPLATE_NAME', ''),
-                'indexPattern'        => env('AUDIT_DATA_STREAM_INDEX_PATTERN', ''),
+                'templateName'        => env('AUDIT_DATA_STREAM_TEMPLATE_NAME', $defaultAuditIndex.'_template'),
+                'indexPattern'        => env('AUDIT_DATA_STREAM_INDEX_PATTERN', $defaultAuditIndex.'*'),
                 'templatePriority'    => (int) env('AUDIT_DATA_STREAM_TEMPLATE_PRIORITY', 100),
                 'lifecyclePolicyName' => env('AUDIT_DATA_STREAM_LIFECYCLE_POLICY', ''),
                 'pipeline'            => env('AUDIT_DATA_STREAM_PIPELINE', ''),
             ],
             'singleWriteRetry' => [
                 'enabled'           => (bool) env('AUDIT_SINGLE_WRITE_RETRY_ENABLED', true),
+                'maxAttempts'       => (int) env('AUDIT_SINGLE_WRITE_RETRY_MAX_ATTEMPTS', 3),
+                'initialBackoffMs'  => (int) env('AUDIT_SINGLE_WRITE_RETRY_INITIAL_BACKOFF_MS', 100),
+                'maxBackoffMs'      => (int) env('AUDIT_SINGLE_WRITE_RETRY_MAX_BACKOFF_MS', 2000),
+                'backoffMultiplier' => (float) env('AUDIT_SINGLE_WRITE_RETRY_BACKOFF_MULTIPLIER', 2.0),
+                'jitterMs'          => (int) env('AUDIT_SINGLE_WRITE_RETRY_JITTER_MS', 25),
             ],
         ],
         'queue' => [

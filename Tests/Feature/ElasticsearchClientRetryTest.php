@@ -48,10 +48,7 @@ class ElasticsearchClientRetryTest extends TestCase
     public function testIndexThrowsWhenRetriesAreExhausted(): void
     {
         $this->expectException(ServerResponseException::class);
-        Config::set(
-            'audit.drivers.elastic.definitions.singleWriteRetry.json',
-            '{"maxAttempts":2,"initialBackoffMs":0,"maxBackoffMs":0,"backoffMultiplier":2.0,"jitterMs":0}',
-        );
+        Config::set('audit.drivers.elastic.singleWriteRetry.maxAttempts', 2);
         $client   = $this->getClientWithStatuses([503, 503]);
         $document = $this->getDocument();
 
@@ -92,35 +89,6 @@ class ElasticsearchClientRetryTest extends TestCase
         $document = $this->getDocument();
 
         $client->index($document, true, false);
-    }
-
-    /**
-     * @throws AuditDriverException
-     * @throws ClientResponseException
-     * @throws Exception
-     * @throws MissingParameterException
-     * @throws NoNodeAvailableException
-     * @throws ServerResponseException
-     */
-    public function testIndexUsesSingleWriteRetryPathOverride(): void
-    {
-        $this->expectException(ServerResponseException::class);
-        $path = sprintf('%s/%s', sys_get_temp_dir(), uniqid('audit-retry-', true).'.json');
-        file_put_contents(
-            $path,
-            '{"maxAttempts":1,"initialBackoffMs":0,"maxBackoffMs":0,"backoffMultiplier":2.0,"jitterMs":0}',
-        );
-        Config::set('audit.drivers.elastic.definitions.singleWriteRetry.json', '');
-        Config::set('audit.drivers.elastic.definitions.singleWriteRetry.path', $path);
-        $client = $this->getClientWithStatuses([503, 200]);
-
-        try {
-            $client->index($this->getDocument(), true, false);
-        } finally {
-            if (is_file($path)) {
-                unlink($path);
-            }
-        }
     }
 
     /**

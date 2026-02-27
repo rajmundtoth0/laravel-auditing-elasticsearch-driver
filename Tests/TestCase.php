@@ -39,22 +39,19 @@ class TestCase extends Orchestra
         Config::set('audit.drivers.elastic.index', 'mocked');
         Config::set('audit.drivers.elastic.storageMode', 'index');
         Config::set('audit.drivers.elastic.definitions.settings.path', __DIR__.'/../resources/elasticsearch/settings.json');
-        Config::set('audit.drivers.elastic.definitions.settings.json', '');
         Config::set('audit.drivers.elastic.definitions.mappings.path', __DIR__.'/../resources/elasticsearch/mappings.json');
-        Config::set('audit.drivers.elastic.definitions.mappings.json', '');
         Config::set('audit.drivers.elastic.definitions.lifecyclePolicy.path', __DIR__.'/../resources/elasticsearch/lifecycle-policy.json');
-        Config::set('audit.drivers.elastic.definitions.lifecyclePolicy.json', '');
-        Config::set('audit.drivers.elastic.definitions.singleWriteRetry.path', __DIR__.'/../resources/elasticsearch/single-write-retry.json');
-        Config::set(
-            'audit.drivers.elastic.definitions.singleWriteRetry.json',
-            '{"maxAttempts":3,"initialBackoffMs":0,"maxBackoffMs":0,"backoffMultiplier":2.0,"jitterMs":0}',
-        );
         Config::set('audit.drivers.elastic.dataStream.templateName', 'mocked_template');
         Config::set('audit.drivers.elastic.dataStream.indexPattern', 'mocked*');
         Config::set('audit.drivers.elastic.dataStream.templatePriority', 100);
         Config::set('audit.drivers.elastic.dataStream.lifecyclePolicyName', '');
         Config::set('audit.drivers.elastic.dataStream.pipeline', '');
         Config::set('audit.drivers.elastic.singleWriteRetry.enabled', true);
+        Config::set('audit.drivers.elastic.singleWriteRetry.maxAttempts', 3);
+        Config::set('audit.drivers.elastic.singleWriteRetry.initialBackoffMs', 0);
+        Config::set('audit.drivers.elastic.singleWriteRetry.maxBackoffMs', 0);
+        Config::set('audit.drivers.elastic.singleWriteRetry.backoffMultiplier', 2.0);
+        Config::set('audit.drivers.elastic.singleWriteRetry.jitterMs', 0);
         Config::set('audit.implementation', Audit::class);
         Config::set('audit.drivers.elastic.useCaCert', false);
         Config::set('audit.drivers.elastic.useAsyncClient', false);

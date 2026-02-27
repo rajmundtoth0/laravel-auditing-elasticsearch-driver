@@ -5,6 +5,7 @@ namespace rajmundtoth0\AuditDriver\Services;
 use InvalidArgumentException;
 use OwenIt\Auditing\Contracts\Audit;
 use rajmundtoth0\AuditDriver\Enums\ElasticsearchStorageMode;
+use rajmundtoth0\AuditDriver\Exceptions\AuditDriverArgumentException;
 
 final class AuditServiceConfig
 {
@@ -14,6 +15,8 @@ final class AuditServiceConfig
      * @param array<mixed> $mappings
      * @param null|array<mixed> $dataStreamLifecyclePolicy
      * @param class-string<Audit> $implementation
+     *
+     * @throws InvalidArgumentException
      */
     public function __construct(
         public readonly array $hosts,
@@ -44,7 +47,7 @@ final class AuditServiceConfig
         public readonly string $queueConnection,
     ) {
         if (!class_exists($this->implementation) || !is_subclass_of($this->implementation, Audit::class)) {
-            throw new InvalidArgumentException(sprintf(
+            throw new AuditDriverArgumentException(sprintf(
                 'Configuration value for key [audit.implementation] must be a class-string implementing [%s], [%s] given.',
                 Audit::class,
                 $this->implementation,

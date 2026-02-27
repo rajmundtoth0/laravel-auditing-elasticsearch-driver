@@ -3,6 +3,7 @@
 namespace rajmundtoth0\AuditDriver\Tests\Feature;
 
 use InvalidArgumentException;
+use JsonException;
 use rajmundtoth0\AuditDriver\Services\ElasticsearchAuditService;
 use rajmundtoth0\AuditDriver\Tests\TestCase;
 
@@ -38,13 +39,18 @@ class ElasticsearchAuditServiceConfigTest extends TestCase
 
     public function testInvalidSettingsJsonThrowsException(): void
     {
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage(
-            'Configuration value for key [audit.drivers.elastic.definitions.settings.json] must contain valid JSON.',
-        );
+        $this->expectException(JsonException::class);
+        $path = sprintf('%s/%s', sys_get_temp_dir(), uniqid('audit-settings-', true).'.json');
+        file_put_contents($path, '{invalid');
+        config()->set('audit.drivers.elastic.definitions.settings.path', $path);
 
-        config()->set('audit.drivers.elastic.definitions.settings.json', '{invalid');
-        resolve(ElasticsearchAuditService::class);
+        try {
+            resolve(ElasticsearchAuditService::class);
+        } finally {
+            if (is_file($path)) {
+                unlink($path);
+            }
+        }
     }
 
     public function testInvalidMappingsPathThrowsException(): void
@@ -54,20 +60,36 @@ class ElasticsearchAuditServiceConfigTest extends TestCase
             'JSON definition file [/tmp/audit-driver-does-not-exist.json] does not exist for key [audit.drivers.elastic.definitions.mappings.path].',
         );
 
-        config()->set('audit.drivers.elastic.definitions.mappings.json', '');
         config()->set('audit.drivers.elastic.definitions.mappings.path', '/tmp/audit-driver-does-not-exist.json');
         resolve(ElasticsearchAuditService::class);
     }
 
-    public function testInlineJsonDefinitionsCanOverrideFiles(): void
+    public function testPathDefinitionsCanOverrideDefaultFiles(): void
     {
-        config()->set('audit.drivers.elastic.definitions.settings.json', '{"number_of_shards":1,"number_of_replicas":0}');
-        config()->set('audit.drivers.elastic.definitions.mappings.json', '{"properties":{"created_at":{"type":"date"}}}');
-        config()->set('audit.drivers.elastic.definitions.lifecyclePolicy.json', '{"policy":{"phases":{"hot":{"actions":{}}}}}');
+        $settingsPath  = sprintf('%s/%s', sys_get_temp_dir(), uniqid('audit-settings-', true).'.json');
+        $mappingsPath  = sprintf('%s/%s', sys_get_temp_dir(), uniqid('audit-mappings-', true).'.json');
+        $lifecyclePath = sprintf('%s/%s', sys_get_temp_dir(), uniqid('audit-lifecycle-', true).'.json');
+        file_put_contents($settingsPath, '{"number_of_shards":1,"number_of_replicas":0}');
+        file_put_contents($mappingsPath, '{"properties":{"created_at":{"type":"date"}}}');
+        file_put_contents($lifecyclePath, '{"policy":{"phases":{"hot":{"actions":{}}}}}');
+        config()->set('audit.drivers.elastic.definitions.settings.path', $settingsPath);
+        config()->set('audit.drivers.elastic.definitions.mappings.path', $mappingsPath);
+        config()->set('audit.drivers.elastic.definitions.lifecyclePolicy.path', $lifecyclePath);
 
-        $service = resolve(ElasticsearchAuditService::class);
-
-        static::assertSame('mocked', $service->getIndexName());
+        try {
+            $service = resolve(ElasticsearchAuditService::class);
+            static::assertSame('mocked', $service->getIndexName());
+        } finally {
+            if (is_file($settingsPath)) {
+                unlink($settingsPath);
+            }
+            if (is_file($mappingsPath)) {
+                unlink($mappingsPath);
+            }
+            if (is_file($lifecyclePath)) {
+                unlink($lifecyclePath);
+            }
+        }
     }
 
     public function testInvalidLifecyclePolicyShapeThrowsException(): void
@@ -76,19 +98,17 @@ class ElasticsearchAuditServiceConfigTest extends TestCase
         $this->expectExceptionMessage(
             'Configuration value for key [audit.drivers.elastic.definitions.lifecyclePolicy] must contain a non-empty object at [policy.phases].',
         );
+        $path = sprintf('%s/%s', sys_get_temp_dir(), uniqid('audit-lifecycle-', true).'.json');
+        file_put_contents($path, '{"policy":{"phases":[]}}');
+        config()->set('audit.drivers.elastic.definitions.lifecyclePolicy.path', $path);
 
-        config()->set('audit.drivers.elastic.definitions.lifecyclePolicy.json', '{"policy":{"phases":[]}}');
-        resolve(ElasticsearchAuditService::class);
+        try {
+            resolve(ElasticsearchAuditService::class);
+        } finally {
+            if (is_file($path)) {
+                unlink($path);
+            }
+        }
     }
 
-    public function testInvalidSingleWriteRetryJsonThrowsException(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage(
-            'Configuration value for key [audit.drivers.elastic.definitions.singleWriteRetry.json] must contain valid JSON.',
-        );
-
-        config()->set('audit.drivers.elastic.definitions.singleWriteRetry.json', '{invalid');
-        resolve(ElasticsearchAuditService::class);
-    }
 }

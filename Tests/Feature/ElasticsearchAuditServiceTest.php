@@ -114,35 +114,41 @@ class ElasticsearchAuditServiceTest extends TestCase
                 ],
             ],
         ];
-        Config::set(
-            'audit.drivers.elastic.definitions.lifecyclePolicy.json',
-            json_encode($lifecyclePolicy, JSON_THROW_ON_ERROR),
-        );
-        $service = $this->getServiceWithMockedClient(function (ElasticsearchClient&MockObject $client) use ($lifecyclePolicy): void {
-            $client->expects($this->once())
-                ->method('putLifecyclePolicy')
-                ->with([
-                    'policy' => 'audits-hot-delete',
-                    'body'   => $lifecyclePolicy,
-                ])
-                ->willReturn($this->getElasticResponse());
-            $client->expects($this->once())
-                ->method('createDataStreamTemplate')
-                ->with(
-                    'mocked_template',
-                    'mocked*',
-                    100,
-                    $this->callback(fn(array $settings): bool => [] !== $settings),
-                    $this->callback(fn(array $mappings): bool => [] !== $mappings),
-                    'audits-hot-delete',
-                    '',
-                )
-                ->willReturn($this->getElasticResponse());
-        });
+        $lifecyclePath = sprintf('%s/%s', sys_get_temp_dir(), uniqid('audit-lifecycle-', true).'.json');
+        file_put_contents($lifecyclePath, json_encode($lifecyclePolicy, JSON_THROW_ON_ERROR));
+        Config::set('audit.drivers.elastic.definitions.lifecyclePolicy.path', $lifecyclePath);
 
-        $result = $service->createIndex();
+        try {
+            $service = $this->getServiceWithMockedClient(function (ElasticsearchClient&MockObject $client) use ($lifecyclePolicy): void {
+                $client->expects($this->once())
+                    ->method('putLifecyclePolicy')
+                    ->with([
+                        'policy' => 'audits-hot-delete',
+                        'body'   => $lifecyclePolicy,
+                    ])
+                    ->willReturn($this->getElasticResponse());
+                $client->expects($this->once())
+                    ->method('createDataStreamTemplate')
+                    ->with(
+                        'mocked_template',
+                        'mocked*',
+                        100,
+                        $this->callback(fn(array $settings): bool => [] !== $settings),
+                        $this->callback(fn(array $mappings): bool => [] !== $mappings),
+                        'audits-hot-delete',
+                        '',
+                    )
+                    ->willReturn($this->getElasticResponse());
+            });
 
-        static::assertSame('mocked', $result);
+            $result = $service->createIndex();
+
+            static::assertSame('mocked', $result);
+        } finally {
+            if (is_file($lifecyclePath)) {
+                unlink($lifecyclePath);
+            }
+        }
     }
 
     /**

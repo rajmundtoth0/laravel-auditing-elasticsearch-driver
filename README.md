@@ -64,31 +64,29 @@ Use the `drivers.elastic` section in `config/audit.php`:
     'definitions' => [
         'settings' => [
             'path' => env('AUDIT_SETTINGS_PATH', ''),
-            'json' => env('AUDIT_SETTINGS_JSON', ''),
         ],
         'mappings' => [
             'path' => env('AUDIT_MAPPINGS_PATH', ''),
-            'json' => env('AUDIT_MAPPINGS_JSON', ''),
         ],
         'lifecyclePolicy' => [
             'path' => env('AUDIT_LIFECYCLE_POLICY_PATH', ''),
-            'json' => env('AUDIT_LIFECYCLE_POLICY_JSON', ''),
-        ],
-        'singleWriteRetry' => [
-            'path' => env('AUDIT_SINGLE_WRITE_RETRY_PATH', ''),
-            'json' => env('AUDIT_SINGLE_WRITE_RETRY_JSON', ''),
         ],
     ],
 
     'dataStream' => [
-        'templateName' => env('AUDIT_DATA_STREAM_TEMPLATE_NAME', ''),
-        'indexPattern' => env('AUDIT_DATA_STREAM_INDEX_PATTERN', ''),
+        'templateName' => env('AUDIT_DATA_STREAM_TEMPLATE_NAME', env('AUDIT_INDEX', 'laravel_auditing').'_template'),
+        'indexPattern' => env('AUDIT_DATA_STREAM_INDEX_PATTERN', env('AUDIT_INDEX', 'laravel_auditing').'*'),
         'templatePriority' => (int) env('AUDIT_DATA_STREAM_TEMPLATE_PRIORITY', 100),
         'lifecyclePolicyName' => env('AUDIT_DATA_STREAM_LIFECYCLE_POLICY', ''),
         'pipeline' => env('AUDIT_DATA_STREAM_PIPELINE', ''),
     ],
     'singleWriteRetry' => [
         'enabled' => (bool) env('AUDIT_SINGLE_WRITE_RETRY_ENABLED', true),
+        'maxAttempts' => (int) env('AUDIT_SINGLE_WRITE_RETRY_MAX_ATTEMPTS', 3),
+        'initialBackoffMs' => (int) env('AUDIT_SINGLE_WRITE_RETRY_INITIAL_BACKOFF_MS', 100),
+        'maxBackoffMs' => (int) env('AUDIT_SINGLE_WRITE_RETRY_MAX_BACKOFF_MS', 2000),
+        'backoffMultiplier' => (float) env('AUDIT_SINGLE_WRITE_RETRY_BACKOFF_MULTIPLIER', 2.0),
+        'jitterMs' => (int) env('AUDIT_SINGLE_WRITE_RETRY_JITTER_MS', 25),
     ],
 ],
 ```
@@ -100,34 +98,13 @@ Default JSON definitions are stored in:
 - `resources/elasticsearch/settings.json`
 - `resources/elasticsearch/mappings.json`
 - `resources/elasticsearch/lifecycle-policy.json`
-- `resources/elasticsearch/single-write-retry.json`
 
 `mappings.json` defines `old_values` and `new_values` as dynamic objects, so model-specific audit keys can be indexed without predefined fields.
 
 The driver resolves each definition in this order:
 
-1. Inline JSON from `definitions.*.json`
-2. File path from `definitions.*.path`
-3. Package default JSON file in `resources/elasticsearch/`
-
-Inline JSON override example:
-
-```php
-'definitions' => [
-    'settings' => [
-        'json' => '{"number_of_shards":1,"number_of_replicas":0}',
-    ],
-    'mappings' => [
-        'json' => '{"properties":{"created_at":{"type":"date"}}}',
-    ],
-    'lifecyclePolicy' => [
-        'json' => '{"policy":{"phases":{"hot":{"actions":{}}}}}',
-    ],
-    'singleWriteRetry' => [
-        'json' => '{"maxAttempts":5,"initialBackoffMs":50,"maxBackoffMs":1500,"backoffMultiplier":2.0,"jitterMs":20}',
-    ],
-],
-```
+1. File path from `definitions.*.path`
+2. Package default JSON file in `resources/elasticsearch/`
 
 File path override example:
 
@@ -141,9 +118,6 @@ File path override example:
     ],
     'lifecyclePolicy' => [
         'path' => base_path('infra/elasticsearch/lifecycle.json'),
-    ],
-    'singleWriteRetry' => [
-        'path' => base_path('infra/elasticsearch/retry.json'),
     ],
 ],
 ```
@@ -159,7 +133,7 @@ Note: in `data_stream` mode, the driver auto-populates `@timestamp` if missing.
 
 Single document writes use retries with exponential backoff for transient failures (`408`, `429`, `5xx`, node-unavailable).
 
-Retry timing values are resolved from `definitions.singleWriteRetry` (inline JSON, file path, or package default), while `singleWriteRetry.enabled` controls whether retries are active.
+Retry timing values are configured through `singleWriteRetry.*` in `config/audit.php`.
 
 - `maxAttempts`: total attempts, including the first call
 - `initialBackoffMs`: delay before first retry
