@@ -93,8 +93,7 @@ jobs:
 
       - name: Install dependencies (pin Elasticsearch PHP client to matching ES minor)
         run: |
-          composer require --no-interaction --no-update elasticsearch/elasticsearch:${{ matrix.es_client }}
-          composer update elasticsearch/elasticsearch --with-all-dependencies --prefer-dist --no-progress --no-interaction
+          composer require --no-interaction --no-progress elasticsearch/elasticsearch:${{ matrix.es_client }}
 
       - name: Show installed Elasticsearch PHP client
         run: composer show elasticsearch/elasticsearch
