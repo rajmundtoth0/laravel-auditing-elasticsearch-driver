@@ -130,8 +130,9 @@ return [
             'useCaCert'    => (bool) env('AUDIT_USE_CERT', true),
             'certPath'     => env('AUDIT_CERT_PATH', ''),
             'index'        => $defaultAuditIndex,
-            'storageMode'  => env('AUDIT_STORAGE_MODE', 'index'), // index|data_stream
-            'definitions'  => [
+            // index|data_stream
+            'storageMode' => env('AUDIT_STORAGE_MODE', 'index'),
+            'definitions' => [
                 'settings' => [
                     'path' => env('AUDIT_SETTINGS_PATH', ''),
                 ],
