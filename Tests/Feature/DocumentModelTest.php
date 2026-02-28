@@ -42,4 +42,23 @@ class DocumentModelTest extends TestCase
         static::assertNotFalse(str_contains($body['created_at'], 'T'));
         static::assertNotFalse(str_contains($body['updated_at'], 'T'));
     }
+
+    public function testExplicitTimestampsArePreserved(): void
+    {
+        $document = new DocumentModel(
+            index: 'mocked',
+            id: '1',
+            body: [
+                'created_at' => '2025-01-01T00:00:00+00:00',
+                'updated_at' => '2025-02-01T00:00:00+00:00',
+            ],
+        );
+
+        $result = $document->toArray();
+        $body   = $result['body'];
+        assert(is_array($body));
+
+        static::assertSame('2025-01-01T00:00:00+00:00', $body['created_at']);
+        static::assertSame('2025-02-01T00:00:00+00:00', $body['updated_at']);
+    }
 }

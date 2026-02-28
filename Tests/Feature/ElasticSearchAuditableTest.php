@@ -47,4 +47,27 @@ class ElasticSearchAuditableTest extends TestCase
 
         $this->assertSame($body, $auditLogs->toArray());
     }
+
+    /**
+     * @throws Exception
+     */
+    public function testElasticsearchAuditLogBuildsPagingAndSortArguments(): void
+    {
+        $this->getServiceWithMockedClient(function (ElasticsearchClient&MockObject $client): void {
+            $client->expects($this->once())
+                ->method('search')
+                ->with($this->callback(fn (array $params): bool => 'mocked' === ($params['index'] ?? null)
+                        && 5 === ($params['size'] ?? null)
+                        && 10 === ($params['from'] ?? null)
+                        && 'asc' === ($params['body']['sort']['created_at']['order'] ?? null)))
+                ->willReturn($this->getElasticResponse(body: ['hits' => ['hits' => []]]));
+        },
+            shouldBind: true,
+        );
+
+        $user = $this->getUser();
+        $logs = $user->elasticsearchAuditLog(page: 3, pageSize: 5, sort: 'asc');
+
+        static::assertSame(['hits' => ['hits' => []]], $logs->toArray());
+    }
 }

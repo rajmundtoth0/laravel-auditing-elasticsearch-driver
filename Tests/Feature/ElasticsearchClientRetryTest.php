@@ -92,6 +92,60 @@ class ElasticsearchClientRetryTest extends TestCase
     }
 
     /**
+     * @throws AuditDriverException
+     * @throws ClientResponseException
+     * @throws Exception
+     * @throws MissingParameterException
+     * @throws NoNodeAvailableException
+     * @throws ServerResponseException
+     */
+    public function testIndexReturnsFalseWhenResultIsNotRequested(): void
+    {
+        $client   = $this->getClientWithStatuses([200]);
+        $document = $this->getDocument();
+
+        $result = $client->index($document, false, false);
+
+        static::assertFalse($result);
+    }
+
+    /**
+     * @throws AuditDriverException
+     * @throws ClientResponseException
+     * @throws Exception
+     * @throws MissingParameterException
+     * @throws NoNodeAvailableException
+     * @throws ServerResponseException
+     */
+    public function testIndexThrowsImmediatelyForNonRetriableClientStatus(): void
+    {
+        $this->expectException(ClientResponseException::class);
+        Config::set('audit.drivers.elastic.singleWriteRetry.enabled', true);
+        Config::set('audit.drivers.elastic.singleWriteRetry.maxAttempts', 5);
+        $client   = $this->getClientWithStatuses([400]);
+        $document = $this->getDocument();
+
+        $client->index($document, true, false);
+    }
+
+    /**
+     * @throws AuditDriverException
+     * @throws ClientResponseException
+     * @throws Exception
+     * @throws MissingParameterException
+     * @throws NoNodeAvailableException
+     * @throws ServerResponseException
+     */
+    public function testIndexModeDoesNotTreatConflictAsSuccess(): void
+    {
+        $this->expectException(ClientResponseException::class);
+        $client   = $this->getClientWithStatuses([409]);
+        $document = $this->getDocument();
+
+        $client->index($document, true, false);
+    }
+
+    /**
      * @param array<int, int> $statuses
      *
      * @throws Exception

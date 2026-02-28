@@ -320,6 +320,29 @@ class ElasticsearchAuditServiceTest extends TestCase
     /**
      * @throws Exception
      */
+    public function testSearchAuditDocumentUsesExplicitFromAndSort(): void
+    {
+        $user = $this->getUser();
+        $user->setAttribute('id', 1001);
+        $service = $this->getServiceWithMockedClient(function (ElasticsearchClient&MockObject $client) use ($user): void {
+            $client->expects($this->once())
+                ->method('search')
+                ->with($this->callback(fn (array $params): bool => 'mocked' === ($params['index'] ?? null)
+                        && 5 === ($params['size'] ?? null)
+                        && 25 === ($params['from'] ?? null)
+                        && ($params['body']['query']['bool']['must'][0]['term']['auditable_id'] ?? null) === $user->id
+                        && 'asc' === ($params['body']['sort']['created_at']['order'] ?? null)))
+                ->willReturn($this->getElasticResponse(body: ['hits' => []]));
+        });
+
+        $result = $service->searchAuditDocument($user, pageSize: 5, from: 25, sort: 'asc');
+
+        static::assertTrue($result->asBool());
+    }
+
+    /**
+     * @throws Exception
+     */
     public function testSearchDelegatesToClient(): void
     {
         $query = [
