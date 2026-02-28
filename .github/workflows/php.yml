@@ -40,7 +40,6 @@ jobs:
 
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress
-
       - name: Run PHP-CS Fixer
         run: |
           if [ ${{ matrix.php }} == '8.4' ]; then
@@ -68,9 +67,9 @@ jobs:
       matrix:
         include:
           - es: "8.19.12"
-            es_client: "^8.0"
+            es_client: "^8.19"
           - es: "9.3.1"
-            es_client: "^9.0"
+            es_client: "^9.3"
 
     services:
       elasticsearch:
@@ -92,7 +91,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install dependencies (pin Elasticsearch PHP client)
+      - name: Install dependencies (pin Elasticsearch PHP client to matching ES minor)
         run: |
           composer require --no-interaction --no-update elasticsearch/elasticsearch:${{ matrix.es_client }}
           composer update elasticsearch/elasticsearch --with-all-dependencies --prefer-dist --no-progress --no-interaction
