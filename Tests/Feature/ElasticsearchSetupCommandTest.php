@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Testing\PendingCommand;
 use PHPUnit\Framework\MockObject\MockObject;
 use rajmundtoth0\AuditDriver\Client\ElasticsearchClient;
+use rajmundtoth0\AuditDriver\Services\AuditServiceConfig;
 use rajmundtoth0\AuditDriver\Services\ElasticsearchAuditService;
 use rajmundtoth0\AuditDriver\Tests\TestCase;
 
@@ -127,6 +128,9 @@ class ElasticsearchSetupCommandTest extends TestCase
                 )
                 ->willReturn($this->getElasticResponse());
         });
+
+        app()->forgetInstance(AuditServiceConfig::class);
+        app()->forgetInstance(ElasticsearchAuditService::class);
 
         $result = $this->artisan('es-audit-log:setup');
         assert($result instanceof PendingCommand);
