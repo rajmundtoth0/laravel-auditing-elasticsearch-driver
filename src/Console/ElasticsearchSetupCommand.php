@@ -9,7 +9,6 @@ use Elastic\Transport\Exception\NoNodeAvailableException;
 use Illuminate\Console\Command;
 use InvalidArgumentException;
 use rajmundtoth0\AuditDriver\Exceptions\AuditDriverException;
-use rajmundtoth0\AuditDriver\Services\AuditServiceConfig;
 use rajmundtoth0\AuditDriver\Services\ElasticsearchAuditService;
 use RuntimeException;
 
@@ -30,8 +29,6 @@ class ElasticsearchSetupCommand extends Command
      */
     public function handle(): void
     {
-        app()->forgetInstance(AuditServiceConfig::class);
-        app()->forgetInstance(ElasticsearchAuditService::class);
         $elasticsearchService = app(ElasticsearchAuditService::class);
         $elasticsearchService->createIndex();
         $this->info("Storage target: {$elasticsearchService->index} is ready!");

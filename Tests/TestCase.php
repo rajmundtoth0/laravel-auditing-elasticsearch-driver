@@ -16,6 +16,7 @@ use OwenIt\Auditing\Models\Audit;
 use PHPUnit\Framework\MockObject\MockObject;
 use rajmundtoth0\AuditDriver\Client\ElasticsearchClient;
 use rajmundtoth0\AuditDriver\ElasticsearchAuditingServiceProvider;
+use rajmundtoth0\AuditDriver\Services\AuditServiceConfig;
 use rajmundtoth0\AuditDriver\Services\ElasticsearchAuditService;
 use rajmundtoth0\AuditDriver\Tests\Model\User;
 
@@ -60,6 +61,13 @@ class TestCase extends Orchestra
         Config::set('audit.drivers.queue.name', 'audits');
         Config::set('audit.drivers.queue.connection', 'redis');
         $this->loadMigrationsFrom(__DIR__.'/Migration');
+    }
+
+    protected function tearDown(): void
+    {
+        app()->forgetInstance(AuditServiceConfig::class);
+        app()->forgetInstance(ElasticsearchAuditService::class);
+        parent::tearDown();
     }
 
     /** @return list<class-string<ServiceProvider>> */
