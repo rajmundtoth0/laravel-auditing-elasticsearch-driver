@@ -140,19 +140,9 @@ class ElasticsearchAuditServiceConfigTest extends TestCase
         $this->expectExceptionMessage(
             'Configuration value for key [audit.drivers.elastic.definitions.settings.path] must decode to a JSON object/array.',
         );
+        $path = __DIR__.'/../Fixtures/elasticsearch/invalid-non-array.json';
+        config()->set('audit.drivers.elastic.definitions.settings.path', $path);
 
-        $path = tempnam(sys_get_temp_dir(), 'audit-settings-');
-        assert(false !== $path);
-
-        try {
-            file_put_contents($path, '"not-an-object"');
-            config()->set('audit.drivers.elastic.definitions.settings.path', $path);
-
-            resolve(ElasticsearchAuditService::class);
-        } finally {
-            if (is_file($path)) {
-                unlink($path);
-            }
-        }
+        resolve(ElasticsearchAuditService::class);
     }
 }

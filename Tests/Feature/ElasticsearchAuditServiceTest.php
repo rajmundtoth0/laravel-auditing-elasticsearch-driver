@@ -264,50 +264,11 @@ class ElasticsearchAuditServiceTest extends TestCase
         $service   = $this->getServiceWithMockedClient(function (ElasticsearchClient&MockObject $client) use ($user, $userArray): void {
             $client->expects($this->once())
                 ->method('search')
-                ->with($this->callback(function (array $params) use ($user): bool {
-                    if ('mocked' !== ($params['index'] ?? null)) {
-                        return false;
-                    }
-                    $body = $params['body'] ?? null;
-                    if (!is_array($body)) {
-                        return false;
-                    }
-                    $query = $body['query'] ?? null;
-                    if (!is_array($query)) {
-                        return false;
-                    }
-                    $bool = $query['bool'] ?? null;
-                    if (!is_array($bool)) {
-                        return false;
-                    }
-                    $must = $bool['must'] ?? null;
-                    if (!is_array($must) || !array_key_exists(0, $must) || !array_key_exists(1, $must)) {
-                        return false;
-                    }
-                    $firstMust  = $must[0];
-                    $secondMust = $must[1];
-                    if (!is_array($firstMust) || !is_array($secondMust)) {
-                        return false;
-                    }
-                    $firstTerm  = $firstMust['term'] ?? null;
-                    $secondTerm = $secondMust['term'] ?? null;
-                    if (!is_array($firstTerm) || !is_array($secondTerm)) {
-                        return false;
-                    }
-                    $sort = $body['sort'] ?? null;
-                    if (!is_array($sort)) {
-                        return false;
-                    }
-                    $createdAtSort = $sort['created_at'] ?? null;
-                    if (!is_array($createdAtSort)) {
-                        return false;
-                    }
-
-                    return ($firstTerm['auditable_id'] ?? null) === $user->id
-                        && ($secondTerm['auditable_type'] ?? null) === $user->getMorphClass()
-                        && 'created_at' === array_key_first($sort)
-                        && 'desc' === ($createdAtSort['order'] ?? null);
-                }))
+                ->with($this->callback(fn (array $params): bool => $this->isExpectedDefaultSearchQuery(
+                    params: $params,
+                    userId: $user->id,
+                    morphClass: $user->getMorphClass(),
+                )))
                 ->willReturn($this->getElasticResponse(body: $userArray));
         });
 
@@ -327,60 +288,42 @@ class ElasticsearchAuditServiceTest extends TestCase
         $service = $this->getServiceWithMockedClient(function (ElasticsearchClient&MockObject $client) use ($user): void {
             $client->expects($this->once())
                 ->method('search')
-                ->with($this->callback(function (array $params) use ($user): bool {
-                    if ('mocked' !== ($params['index'] ?? null) || 5 !== ($params['size'] ?? null) || 25 !== ($params['from'] ?? null)) {
-                        return false;
-                    }
-
-                    $body = $params['body'] ?? null;
-                    if (!is_array($body)) {
-                        return false;
-                    }
-
-                    $query = $body['query'] ?? null;
-                    if (!is_array($query)) {
-                        return false;
-                    }
-
-                    $bool = $query['bool'] ?? null;
-                    if (!is_array($bool)) {
-                        return false;
-                    }
-
-                    $must = $bool['must'] ?? null;
-                    if (!is_array($must) || !array_key_exists(0, $must)) {
-                        return false;
-                    }
-
-                    $firstMust = $must[0];
-                    if (!is_array($firstMust)) {
-                        return false;
-                    }
-
-                    $firstTerm = $firstMust['term'] ?? null;
-                    if (!is_array($firstTerm)) {
-                        return false;
-                    }
-
-                    $sort = $body['sort'] ?? null;
-                    if (!is_array($sort)) {
-                        return false;
-                    }
-
-                    $createdAtSort = $sort['created_at'] ?? null;
-                    if (!is_array($createdAtSort)) {
-                        return false;
-                    }
-
-                    return ($firstTerm['auditable_id'] ?? null) === $user->id
-                        && 'asc' === ($createdAtSort['order'] ?? null);
-                }))
+                ->with($this->callback(fn (array $params): bool => $this->isExpectedExplicitFromAndSortQuery($params, $user->id)))
                 ->willReturn($this->getElasticResponse(body: ['hits' => []]));
         });
 
         $result = $service->searchAuditDocument($user, pageSize: 5, from: 25, sort: 'asc');
 
         static::assertTrue($result->asBool());
+    }
+
+    /**
+     * @param array<mixed> $params
+     */
+    private function isExpectedExplicitFromAndSortQuery(array $params, int $userId): bool
+    {
+        return 'mocked' === ($params['index'] ?? null)
+            && 5 === ($params['size'] ?? null)
+            && 25 === ($params['from'] ?? null)
+            && $userId === data_get($params, 'body.query.bool.must.0.term.auditable_id')
+            && 'asc' === data_get($params, 'body.sort.created_at.order');
+    }
+
+    /**
+     * @param array<mixed> $params
+     */
+    private function isExpectedDefaultSearchQuery(array $params, int $userId, string $morphClass): bool
+    {
+        $sort          = data_get($params, 'body.sort');
+        $firstSortKey  = is_array($sort) ? array_key_first($sort) : null;
+        $createdAtSort = data_get($params, 'body.sort.created_at');
+
+        return 'mocked' === ($params['index'] ?? null)
+            && $userId === data_get($params, 'body.query.bool.must.0.term.auditable_id')
+            && $morphClass === data_get($params, 'body.query.bool.must.1.term.auditable_type')
+            && 'created_at' === $firstSortKey
+            && is_array($createdAtSort)
+            && 'desc' === ($createdAtSort['order'] ?? null);
     }
 
     /**
