@@ -56,10 +56,28 @@ class ElasticSearchAuditableTest extends TestCase
         $this->getServiceWithMockedClient(function (ElasticsearchClient&MockObject $client): void {
             $client->expects($this->once())
                 ->method('search')
-                ->with($this->callback(fn (array $params): bool => 'mocked' === ($params['index'] ?? null)
-                        && 5 === ($params['size'] ?? null)
-                        && 10 === ($params['from'] ?? null)
-                        && 'asc' === ($params['body']['sort']['created_at']['order'] ?? null)))
+                ->with($this->callback(function (array $params): bool {
+                    if ('mocked' !== ($params['index'] ?? null) || 5 !== ($params['size'] ?? null) || 10 !== ($params['from'] ?? null)) {
+                        return false;
+                    }
+
+                    $body = $params['body'] ?? null;
+                    if (!is_array($body)) {
+                        return false;
+                    }
+
+                    $sort = $body['sort'] ?? null;
+                    if (!is_array($sort)) {
+                        return false;
+                    }
+
+                    $createdAtSort = $sort['created_at'] ?? null;
+                    if (!is_array($createdAtSort)) {
+                        return false;
+                    }
+
+                    return 'asc' === ($createdAtSort['order'] ?? null);
+                }))
                 ->willReturn($this->getElasticResponse(body: ['hits' => ['hits' => []]]));
         },
             shouldBind: true,

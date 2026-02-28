@@ -327,11 +327,54 @@ class ElasticsearchAuditServiceTest extends TestCase
         $service = $this->getServiceWithMockedClient(function (ElasticsearchClient&MockObject $client) use ($user): void {
             $client->expects($this->once())
                 ->method('search')
-                ->with($this->callback(fn (array $params): bool => 'mocked' === ($params['index'] ?? null)
-                        && 5 === ($params['size'] ?? null)
-                        && 25 === ($params['from'] ?? null)
-                        && ($params['body']['query']['bool']['must'][0]['term']['auditable_id'] ?? null) === $user->id
-                        && 'asc' === ($params['body']['sort']['created_at']['order'] ?? null)))
+                ->with($this->callback(function (array $params) use ($user): bool {
+                    if ('mocked' !== ($params['index'] ?? null) || 5 !== ($params['size'] ?? null) || 25 !== ($params['from'] ?? null)) {
+                        return false;
+                    }
+
+                    $body = $params['body'] ?? null;
+                    if (!is_array($body)) {
+                        return false;
+                    }
+
+                    $query = $body['query'] ?? null;
+                    if (!is_array($query)) {
+                        return false;
+                    }
+
+                    $bool = $query['bool'] ?? null;
+                    if (!is_array($bool)) {
+                        return false;
+                    }
+
+                    $must = $bool['must'] ?? null;
+                    if (!is_array($must) || !array_key_exists(0, $must)) {
+                        return false;
+                    }
+
+                    $firstMust = $must[0];
+                    if (!is_array($firstMust)) {
+                        return false;
+                    }
+
+                    $firstTerm = $firstMust['term'] ?? null;
+                    if (!is_array($firstTerm)) {
+                        return false;
+                    }
+
+                    $sort = $body['sort'] ?? null;
+                    if (!is_array($sort)) {
+                        return false;
+                    }
+
+                    $createdAtSort = $sort['created_at'] ?? null;
+                    if (!is_array($createdAtSort)) {
+                        return false;
+                    }
+
+                    return ($firstTerm['auditable_id'] ?? null) === $user->id
+                        && 'asc' === ($createdAtSort['order'] ?? null);
+                }))
                 ->willReturn($this->getElasticResponse(body: ['hits' => []]));
         });
 
