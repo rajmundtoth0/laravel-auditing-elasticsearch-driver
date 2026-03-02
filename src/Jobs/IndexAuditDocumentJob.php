@@ -10,6 +10,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use InvalidArgumentException;
 use rajmundtoth0\AuditDriver\Exceptions\AuditDriverException;
 use rajmundtoth0\AuditDriver\Models\DocumentModel;
 use rajmundtoth0\AuditDriver\Services\ElasticsearchAuditService;
@@ -28,6 +29,7 @@ class IndexAuditDocumentJob implements ShouldQueue
     /**
      * @throws AuditDriverException
      * @throws ClientResponseException
+     * @throws InvalidArgumentException
      * @throws NoNodeAvailableException
      * @throws MissingParameterException
      * @throws ServerResponseException

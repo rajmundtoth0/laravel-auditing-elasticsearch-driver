@@ -1,5 +1,7 @@
 <?php
 
+$defaultAuditIndex = env('AUDIT_INDEX', 'laravel_auditing');
+
 return [
 
     /*
@@ -127,9 +129,35 @@ return [
             'useBasicAuth' => (bool) env('AUDIT_BASIC_AUTH', true),
             'useCaCert'    => (bool) env('AUDIT_USE_CERT', true),
             'certPath'     => env('AUDIT_CERT_PATH', ''),
-            'index'        => env('AUDIT_INDEX', 'laravel_auditing'),
-            'type'         => env('AUDIT_TYPE', 'audits'),
-            'dateFormat'   => env('AUDIT_DATE_FORMAT', 'yyyy-MM-dd HH:mm:ss'),
+            'index'        => $defaultAuditIndex,
+            // index|data_stream
+            'storageMode' => env('AUDIT_STORAGE_MODE', 'index'),
+            'definitions' => [
+                'settings' => [
+                    'path' => env('AUDIT_SETTINGS_PATH', ''),
+                ],
+                'mappings' => [
+                    'path' => env('AUDIT_MAPPINGS_PATH', ''),
+                ],
+                'lifecyclePolicy' => [
+                    'path' => env('AUDIT_LIFECYCLE_POLICY_PATH', ''),
+                ],
+            ],
+            'dataStream' => [
+                'templateName'        => env('AUDIT_DATA_STREAM_TEMPLATE_NAME', $defaultAuditIndex.'_template'),
+                'indexPattern'        => env('AUDIT_DATA_STREAM_INDEX_PATTERN', $defaultAuditIndex.'*'),
+                'templatePriority'    => (int) env('AUDIT_DATA_STREAM_TEMPLATE_PRIORITY', 100),
+                'lifecyclePolicyName' => env('AUDIT_DATA_STREAM_LIFECYCLE_POLICY', $defaultAuditIndex.'_lifecycle_policy'),
+                'pipeline'            => env('AUDIT_DATA_STREAM_PIPELINE', ''),
+            ],
+            'singleWriteRetry' => [
+                'enabled'           => (bool) env('AUDIT_SINGLE_WRITE_RETRY_ENABLED', true),
+                'maxAttempts'       => (int) env('AUDIT_SINGLE_WRITE_RETRY_MAX_ATTEMPTS', 3),
+                'initialBackoffMs'  => (int) env('AUDIT_SINGLE_WRITE_RETRY_INITIAL_BACKOFF_MS', 100),
+                'maxBackoffMs'      => (int) env('AUDIT_SINGLE_WRITE_RETRY_MAX_BACKOFF_MS', 2000),
+                'backoffMultiplier' => (float) env('AUDIT_SINGLE_WRITE_RETRY_BACKOFF_MULTIPLIER', 2.0),
+                'jitterMs'          => (int) env('AUDIT_SINGLE_WRITE_RETRY_JITTER_MS', 25),
+            ],
         ],
         'queue' => [
             'enabled'    => (bool) env('AUDIT_QUEUE_ENABLED', false),

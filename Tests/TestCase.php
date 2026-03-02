@@ -13,7 +13,10 @@ use Illuminate\Support\ServiceProvider;
 use Nyholm\Psr7\Response;
 use Orchestra\Testbench\TestCase as Orchestra;
 use OwenIt\Auditing\Models\Audit;
+use PHPUnit\Framework\MockObject\MockObject;
+use rajmundtoth0\AuditDriver\Client\ElasticsearchClient;
 use rajmundtoth0\AuditDriver\ElasticsearchAuditingServiceProvider;
+use rajmundtoth0\AuditDriver\Services\AuditServiceConfig;
 use rajmundtoth0\AuditDriver\Services\ElasticsearchAuditService;
 use rajmundtoth0\AuditDriver\Tests\Model\User;
 
@@ -35,7 +38,21 @@ class TestCase extends Orchestra
         Config::set('audit.drivers.elastic.userName', 'elastic');
         Config::set('audit.drivers.elastic.password', 'mocked');
         Config::set('audit.drivers.elastic.index', 'mocked');
-        Config::set('audit.drivers.elastic.type', 'mocked');
+        Config::set('audit.drivers.elastic.storageMode', 'index');
+        Config::set('audit.drivers.elastic.definitions.settings.path', __DIR__.'/../resources/elasticsearch/settings.json');
+        Config::set('audit.drivers.elastic.definitions.mappings.path', __DIR__.'/../resources/elasticsearch/mappings.json');
+        Config::set('audit.drivers.elastic.definitions.lifecyclePolicy.path', __DIR__.'/../resources/elasticsearch/lifecycle-policy.json');
+        Config::set('audit.drivers.elastic.dataStream.templateName', 'mocked_template');
+        Config::set('audit.drivers.elastic.dataStream.indexPattern', 'mocked*');
+        Config::set('audit.drivers.elastic.dataStream.templatePriority', 100);
+        Config::set('audit.drivers.elastic.dataStream.lifecyclePolicyName', '');
+        Config::set('audit.drivers.elastic.dataStream.pipeline', '');
+        Config::set('audit.drivers.elastic.singleWriteRetry.enabled', true);
+        Config::set('audit.drivers.elastic.singleWriteRetry.maxAttempts', 3);
+        Config::set('audit.drivers.elastic.singleWriteRetry.initialBackoffMs', 0);
+        Config::set('audit.drivers.elastic.singleWriteRetry.maxBackoffMs', 0);
+        Config::set('audit.drivers.elastic.singleWriteRetry.backoffMultiplier', 2.0);
+        Config::set('audit.drivers.elastic.singleWriteRetry.jitterMs', 0);
         Config::set('audit.implementation', Audit::class);
         Config::set('audit.drivers.elastic.useCaCert', false);
         Config::set('audit.drivers.elastic.useAsyncClient', false);
@@ -44,6 +61,13 @@ class TestCase extends Orchestra
         Config::set('audit.drivers.queue.name', 'audits');
         Config::set('audit.drivers.queue.connection', 'redis');
         $this->loadMigrationsFrom(__DIR__.'/Migration');
+    }
+
+    protected function tearDown(): void
+    {
+        app()->forgetInstance(AuditServiceConfig::class);
+        app()->forgetInstance(ElasticsearchAuditService::class);
+        parent::tearDown();
     }
 
     /** @return list<class-string<ServiceProvider>> */
@@ -78,6 +102,28 @@ class TestCase extends Orchestra
     }
 
     /**
+     * @param callable(ElasticsearchClient&MockObject):void $configureMock
+     */
+    protected function getServiceWithMockedClient(callable $configureMock, bool $shouldBind = false): ElasticsearchAuditService
+    {
+        $clientMock = $this->createMock(ElasticsearchClient::class);
+        $clientMock->expects($this->once())
+            ->method('setClient')
+            ->willReturnSelf();
+        $configureMock($clientMock);
+        assert($this->app instanceof Application);
+        $this->app->instance(ElasticsearchClient::class, $clientMock);
+
+        $service = resolve(ElasticsearchAuditService::class);
+
+        if ($shouldBind) {
+            $this->app->singleton(ElasticsearchAuditService::class, fn (): ElasticsearchAuditService => $service);
+        }
+
+        return $service;
+    }
+
+    /**
      * @param array<int, int> $statuses
      * @param array<int, null|array<mixed>> $bodies
      * @throws Exception
@@ -96,8 +142,14 @@ class TestCase extends Orchestra
                 body: json_encode($body, JSON_THROW_ON_ERROR),
             );
 
+            if ($shouldThrowException) {
+                $mockHttpClient->addResponse($rawResponse);
+
+                continue;
+            }
+
             $elasticResponse = new Elasticsearch();
-            $elasticResponse->setResponse($rawResponse, $shouldThrowException);
+            $elasticResponse->setResponse($rawResponse, false);
             $mockHttpClient->addResponse($elasticResponse);
         }
 
