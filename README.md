@@ -6,7 +6,7 @@
 [![PHP Version Require](https://poser.pugx.org/rajmundtoth0/laravel-auditing-elasticsearch-driver/require/php)](https://packagist.org/packages/rajmundtoth0/laravel-auditing-elasticsearch-driver)
 [![License](https://poser.pugx.org/rajmundtoth0/laravel-auditing-elasticsearch-driver/license)](https://packagist.org/packages/rajmundtoth0/laravel-auditing-elasticsearch-driver)
 [![Total Downloads](https://poser.pugx.org/rajmundtoth0/laravel-auditing-elasticsearch-driver/downloads)](https://packagist.org/packages/rajmundtoth0/laravel-auditing-elasticsearch-driver)
-
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/rajmundtoth0/laravel-auditing-elasticsearch-driver.svg)](https://packagist.org/packages/rajmundtoth0/laravel-auditing-elasticsearch-driver)
 # Laravel Auditing Elasticsearch Driver
 
 Elasticsearch driver for [Laravel Auditing](https://laravel-auditing.com/), with support for both classic indices and Elasticsearch data streams.
