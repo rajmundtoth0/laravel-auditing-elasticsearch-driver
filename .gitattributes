@@ -1,0 +1,11 @@
+/.gitattributes export-ignore
+/.editorconfig export-ignore
+/.github export-ignore
+/.gitignore export-ignore
+/.php-cs-fixer.dist.php export-ignore
+/README.md export-ignore
+/Tests export-ignore
+/codecov.yml export-ignore
+/composer.lock export-ignore
+/phpstan.neon.dist export-ignore
+/phpunit.xml export-ignore
